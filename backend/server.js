@@ -116,6 +116,34 @@ app.get('/api/reports', (req, res) => {
     });
 });
 
+// --- NEW ENDPOINT: UPDATE REPORT STATUS ---
+// We use a 'PATCH' request because we are partially updating a report
+app.patch('/api/reports/:trackingId/status', (req, res) => {
+    
+    // 1. Get the trackingId from the URL parameters
+    const { trackingId } = req.params;
+    
+    // 2. Get the new status from the request body
+    const { newStatus } = req.body;
+
+    // 3. Validate the newStatus
+    if (!['Pending', 'In Progress', 'Resolved'].includes(newStatus)) {
+        return res.status(400).json({ success: false, message: 'Invalid status value' });
+    }
+
+    const sql = `CALL sp_UpdateReportStatus(?, ?)`;
+    const values = [trackingId, newStatus];
+
+    db.query(sql, values, (err, result) => {
+        if (err) {
+            console.error('Error updating status:', err);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+
+        res.status(200).json({ success: true, message: 'Status updated successfully' });
+    });
+});
+
 
 // --- Start the Server Listener ---
 app.listen(port, () => {
