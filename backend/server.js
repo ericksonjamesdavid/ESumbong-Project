@@ -14,12 +14,12 @@ app.use(express.urlencoded({ extended: true }));
 
 
 // This tells Express to serve all static files (HTML, CSS, JS, Images)
-// from the '../ESumbong-frontend' directory.
-app.use(express.static(path.join(__dirname, '..', 'ESumbong-frontend')));
+// from the '../frontend' directory.
+app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const uploadPath = path.join(__dirname, '..', 'ESumbong-frontend', 'uploads');
+        const uploadPath = path.join(__dirname, '..', 'frontend', 'uploads');
         cb(null, uploadPath);
     },
     filename: (req, file, cb) => {
@@ -101,8 +101,23 @@ app.post('/api/submit-report', upload.fields([
     });
 });
 
+// --- GET ALL REPORTS ---
+app.get('/api/reports', (req, res) => {
+    
+    const sql = `CALL sp_GetAllReports()`;
 
-// --- Start the Server ---
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error('Error fetching reports:', err);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+
+        res.status(200).json({ success: true, reports: results[0] });
+    });
+});
+
+
+// --- Start the Server Listener ---
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
     console.log(`Your frontend should be visible at http://localhost:${port}`);
