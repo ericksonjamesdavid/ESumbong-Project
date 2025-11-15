@@ -65,19 +65,22 @@
         </p>
         
         <div class="flex items-center justify-center w-full">
-            <label for="barangayIdUpload" class="flex flex-col items-center justify-center w-full h-24 border-2 border-green-300 border-dashed rounded-lg cursor-pointer bg-green-50 hover:bg-green-100 transition">
-                <div class="flex flex-col items-center justify-center py-4">
+            <label for="barangayIdUpload" class="flex flex-col items-center justify-center w-full min-h-24 border-2 border-green-300 border-dashed rounded-lg cursor-pointer bg-green-50 hover:bg-green-100 transition p-4">
+                
+                <div id="barangayIdUpload-prompt" class="flex flex-col items-center justify-center text-center py-4">
                     <svg class="w-8 h-8 mb-2 text-green-700" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 5.757v8.486M5.757 10h8.486M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
                     </svg>
                     <p class="mb-1 text-sm text-green-800"><span class="font-semibold">Click to upload ID</span></p>
                     <p class="text-xs text-green-600">JPEG or PNG only</p>
                 </div>
+                
+                <div id="barangayIdPreview" class="preview-container flex flex-wrap gap-2">
+                    </div>
+
                 <input id="barangayIdUpload" type="file" accept="image/jpeg,image/png" class="hidden" />
             </label>
         </div>
-        
-        <div id="barangayIdPreview" class="preview-container flex flex-wrap mt-2"></div>
       </div>
 
   <!-- Category -->
@@ -110,19 +113,22 @@
         <label class="block mb-2 font-medium">Upload Evidence<span class="text-red-600">*</span></label>
         
         <div class="flex items-center justify-center w-full">
-            <label for="evidence" class="flex flex-col items-center justify-center w-full h-24 border-2 border-green-300 border-dashed rounded-lg cursor-pointer bg-green-50 hover:bg-green-100 transition">
-                <div class="flex flex-col items-center justify-center py-4">
+            <label for="evidence" class="flex flex-col items-center justify-center w-full min-h-24 border-2 border-green-300 border-dashed rounded-lg cursor-pointer bg-green-50 hover:bg-green-100 transition p-4">
+                
+                <div id="evidenceUpload-prompt" class="flex flex-col items-center justify-center text-center py-4">
                     <svg class="w-8 h-8 mb-2 text-green-700" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 5.757v8.486M5.757 10h8.486M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/> 
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 5.757v8.486M5.757 10h8.486M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
                     </svg>
                     <p class="mb-1 text-sm text-green-800"><span class="font-semibold">Click to upload evidence</span></p>
                     <p class="text-xs text-green-600">Images or Videos (Max 7 files)</p>
                 </div>
+
+                <div id="evidencePreview" class="preview-container flex flex-wrap gap-2">
+                    </div>
+
                 <input id="evidence" type="file" accept="image/jpeg,image/png,video/mp4" multiple class="hidden" />
             </label>
         </div>
-
-        <div id="evidencePreview" class="preview-container flex flex-wrap mt-2"></div>
       </div>
 
   <!-- Date Submitted -->

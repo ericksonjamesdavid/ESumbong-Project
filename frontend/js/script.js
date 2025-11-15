@@ -181,33 +181,59 @@ if (reportedTotalEl) {
 // =======================
 // REPORT ISSUE SECTION
 // =======================
+
 // Map Initialization
 const mapContainer = document.getElementById('map');
-// --- ADD THIS CHECK ---
 if (mapContainer) {
-  const map = L.map('map').setView([14.8186, 120.9563], 13);
+  
+  // 1. Define the center of Pulong Buhangin
+  const mapCenter = [14.8705, 121.0022]; // <-- CORRECT CENTER
+
+  // 2. Define the *specific boundaries* for Pulong Buhangin
+  const corner1 = L.latLng(14.84497, 120.97564); // Approx. Southwest corner
+  const corner2 = L.latLng(14.88497, 121.01564); // Approx. Northeast corner
+  const bounds = L.latLngBounds(corner1, corner2);
+
+  // 3. Initialize the map with new options
+  const map = L.map('map', {
+      center: mapCenter,
+      zoom: 15,           // Start at a good zoom level
+      maxBounds: bounds,  // This locks the view to Pulong Buhangin
+      minZoom: 14         // Stop users from zooming out too far
+  });
+  
+  // 4. Set the map's view to fit the new, tighter bounds
+  map.fitBounds(bounds);
+
+  // 5. Add the map tiles
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
 
   let marker;
   map.on('click', async (e) => {
     const { lat, lng } = e.latlng;
 
-    if (marker) marker.setLatLng([lat, lng]);
-    else marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+    // 6. Check if the click is within the allowed boundaries
+    if (bounds.contains(e.latlng)) {
+      if (marker) marker.setLatLng([lat, lng]);
+      else marker = L.marker([lat, lng], { draggable: true }).addTo(map);
 
-    document.getElementById('lat').value = lat;
-    document.getElementById('lng').value = lng;
+      document.getElementById('lat').value = lat;
+      document.getElementById('lng').value = lng;
 
-    try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
-      const data = await res.json();
-      document.getElementById('address').value = data.display_name || `${lat}, ${lng}`;
-    } catch {
-      document.getElementById('address').value = `${lat}, ${lng}`;
+      // Reverse geocode to get address
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+        const data = await res.json();
+        document.getElementById('address').value = data.display_name || `${lat}, ${lng}`;
+      } catch {
+        document.getElementById('address').value = `${lat}, ${lng}`;
+      }
+    } else {
+      // If clicked outside bounds, show an alert
+      alert("Please pin a location within Barangay Pulong Buhangin.");
     }
   });
 }
-
 
 // Default date
 const dateInput = document.getElementById('dateSubmitted');
@@ -294,6 +320,15 @@ function createPreview(file, container, array, allowRemove = true) {
     remove.onclick = () => {
       wrapper.remove();
       array.splice(array.indexOf(file), 1);
+
+      // Check if container is empty
+      if (container.children.length === 0) {
+        const promptId = container.id.replace('Preview', 'Upload-prompt');
+        const prompt = document.getElementById(promptId);
+        if (prompt) {
+            prompt.classList.remove('hidden');
+        }
+      }
     };
     wrapper.append(el, remove);
   } else {
@@ -308,6 +343,9 @@ function createPreview(file, container, array, allowRemove = true) {
 // Barangay ID Upload
 const barangayIdUploadEl = document.getElementById('barangayIdUpload');
 if (barangayIdUploadEl) {
+
+  const prompt = document.getElementById('barangayIdUpload-prompt');
+
   barangayIdUploadEl.addEventListener('change', (e) => {
     const preview = document.getElementById('barangayIdPreview');
     const files = Array.from(e.target.files);
@@ -326,18 +364,25 @@ if (barangayIdUploadEl) {
       return; 
     }
 
+if (files.length > 0 && prompt) {
+        prompt.classList.add('hidden');
+    }
+
     files.forEach(f => {
       barangayIdFiles.push(f);
       createPreview(f, preview, barangayIdFiles);
     });
   });
-} 
+}
 
 
 
 // Evidence Upload
 const evidenceEl = document.getElementById('evidence');
 if (evidenceEl) {
+
+  const prompt = document.getElementById('evidenceUpload-prompt');
+
   evidenceEl.addEventListener('change', (e) => {
     const preview = document.getElementById('evidencePreview');
     const files = Array.from(e.target.files);
