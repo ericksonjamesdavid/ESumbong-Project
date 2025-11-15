@@ -59,14 +59,23 @@
 
   <!-- Barangay ID -->
 <div id="barangayIdRow">
-        <label>Upload Barangay ID / Proof of Residency<span class="text-red-600">*</span></label>
-        <p class="text-red-600 text-xs mt-0">
-          (Upload your barangay ID or proof of residency only for 
-          <span class="text-red-600">verification purposes</span>. Your information will remain confidential.)
+        <label class="block mb-1 font-medium">Upload Barangay ID / Proof of Residency<span class="text-red-600">*</span></label>
+        <p class="text-red-600 text-xs mt-0 mb-2">
+          (Upload for <span class="text-red-600">verification purposes</span>. Info remains confidential.)
         </p>
-        <input id="barangayIdUpload" type="file" accept="image/jpeg,image/png" class="w-full border rounded px-3 py-2 mt-1">
         
-        <p class="text-xs text-gray-500 mt-1">File must be .jpeg or .png</p>
+        <div class="flex items-center justify-center w-full">
+            <label for="barangayIdUpload" class="flex flex-col items-center justify-center w-full h-24 border-2 border-green-300 border-dashed rounded-lg cursor-pointer bg-green-50 hover:bg-green-100 transition">
+                <div class="flex flex-col items-center justify-center py-4">
+                    <svg class="w-8 h-8 mb-2 text-green-700" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 5.757v8.486M5.757 10h8.486M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                    </svg>
+                    <p class="mb-1 text-sm text-green-800"><span class="font-semibold">Click to upload ID</span></p>
+                    <p class="text-xs text-green-600">JPEG or PNG only</p>
+                </div>
+                <input id="barangayIdUpload" type="file" accept="image/jpeg,image/png" class="hidden" />
+            </label>
+        </div>
         
         <div id="barangayIdPreview" class="preview-container flex flex-wrap mt-2"></div>
       </div>
@@ -98,10 +107,20 @@
 
   <!-- Upload Evidence -->
 <div>
-        <label>Upload Evidence<span class="text-red-600">*</span></label>
-        <input id="evidence" type="file" accept="image/jpeg,image/png,video/mp4" multiple class="w-full border rounded px-3 py-2">
+        <label class="block mb-2 font-medium">Upload Evidence<span class="text-red-600">*</span></label>
         
-        <p class="text-xs text-gray-500 mt-1">Files must be .jpeg, .png, or .mp4 (Max 7 files)</p>
+        <div class="flex items-center justify-center w-full">
+            <label for="evidence" class="flex flex-col items-center justify-center w-full h-24 border-2 border-green-300 border-dashed rounded-lg cursor-pointer bg-green-50 hover:bg-green-100 transition">
+                <div class="flex flex-col items-center justify-center py-4">
+                    <svg class="w-8 h-8 mb-2 text-green-700" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 5.757v8.486M5.757 10h8.486M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/> 
+                    </svg>
+                    <p class="mb-1 text-sm text-green-800"><span class="font-semibold">Click to upload evidence</span></p>
+                    <p class="text-xs text-green-600">Images or Videos (Max 7 files)</p>
+                </div>
+                <input id="evidence" type="file" accept="image/jpeg,image/png,video/mp4" multiple class="hidden" />
+            </label>
+        </div>
 
         <div id="evidencePreview" class="preview-container flex flex-wrap mt-2"></div>
       </div>
