@@ -7,14 +7,9 @@ let filteredReports = [];
 let allSuggestions = [];
 let currentSuggestionId = null;
 
-// Sample Audit Log Data (Moved to top)
-const auditLogData = [
-    { timestamp: "2025-11-11 15:30:01", user: "admin", actionType: "LOGIN_SUCCESS", description: "Admin 'admin' successfully logged in." },
-    { timestamp: "2025-11-11 15:31:05", user: "admin", actionType: "ANNOUNCEMENT_CREATE", description: "Created new announcement: 'Clean-up Drive this Weekend'" },
-    { timestamp: "2025-11-11 15:32:14", user: "admin", actionType: "REPORT_STATUS_UPDATE", description: "Changed status of report TR-001 from 'Pending' to 'In Progress'" },
-    { timestamp: "2025-11-11 15:35:20", user: "admin", actionType: "LOGIN_FAIL", description: "Failed login attempt for user 'guest'" }
-];
-let filteredAuditLogs = [...auditLogData];
+// Audit Log Data placeholder (will be filled by API)
+let auditLogData = []; 
+let filteredAuditLogs = [];
 
 // =======================
 // SIDEBAR
@@ -23,7 +18,6 @@ const sidebarToggle = document.getElementById('sidebarToggle');
 const sidebar = document.getElementById('sidebar');
 const icon = sidebarToggle ? sidebarToggle.querySelector('i') : null;
 
-// Toggle Sidebar visibility
 if (sidebarToggle && sidebar) {
     sidebarToggle.addEventListener('click', (event) => {
         event.stopPropagation();
@@ -32,7 +26,6 @@ if (sidebarToggle && sidebar) {
     });
 }
 
-// Function to switch visible sections
 function showSection(sectionId) {
     const sections = ['sectionAnnouncements', 'sectionCharts', 'sectionReports', 'sectionAuditLog', 'sectionSuggestions'];
     const buttons = {
@@ -43,13 +36,11 @@ function showSection(sectionId) {
         sectionSuggestions: document.getElementById('btnSuggestions')
     };
 
-    // Show selected section, hide others
     sections.forEach(sec => {
         const el = document.getElementById(sec);
         if (el) el.style.display = (sec === sectionId) ? 'block' : 'none';
     });
 
-    // Disable active button
     Object.entries(buttons).forEach(([id, btn]) => {
         if (!btn) return;
         if (id === sectionId) {
@@ -61,7 +52,6 @@ function showSection(sectionId) {
         }
     });
 
-    // Hide sidebar after selection
     if (sidebar) {
         sidebar.classList.add('-translate-x-full');
         if (icon) {
@@ -71,7 +61,6 @@ function showSection(sectionId) {
     }
 }
 
-// Hide sidebar when clicking the arrow icon
 const hideSidebar = document.getElementById('hideSidebar');
 if (hideSidebar && sidebar) {
     hideSidebar.addEventListener('click', () => {
@@ -80,7 +69,6 @@ if (hideSidebar && sidebar) {
     });
 }
 
-// Hide sidebar when clicking outside
 document.addEventListener('click', (event) => {
     if (sidebar && sidebarToggle) {
         const isClickInsideSidebar = sidebar.contains(event.target);
@@ -129,7 +117,6 @@ if (carousel) {
         });
     }
 
-    // Auto-slide every 10 seconds
     setInterval(() => {
         if (index < totalSlides - visibleSlides) index++;
         else index = 0;
@@ -229,7 +216,6 @@ function initDashboardCharts(stats) {
         });
     }
 
-    // Legend
     const legendList = document.getElementById('legendList');
     if (legendList) {
         legendList.innerHTML = '';
@@ -253,8 +239,6 @@ async function fetchDashboardStats() {
         if (data.success && data.stats) {
             if (data.stats.length > 0) {
                 initDashboardCharts(data.stats);
-            } else {
-                console.log("Dashboard: No stats to display yet.");
             }
         } else {
             console.error('Failed to load dashboard stats:', data.message);
@@ -269,42 +253,37 @@ async function fetchDashboardStats() {
 // ANNOUNCEMENT SECTION
 // =======================
 const addAnnouncementBtn = document.getElementById('addAnnouncementBtn');
-const announcementForm = document.getElementById('announcementForm');
+const announcementModal = document.getElementById('announcementModal'); 
+const closeAnnModal = document.getElementById('closeAnnModal'); 
 const uploadAnnouncementBtn = document.getElementById('uploadAnnouncementBtn');
 const cancelAnnouncementBtn = document.getElementById('cancelAnnouncementBtn');
 const announcementTitle = document.getElementById('announcementTitle');
 const announcementDescription = document.getElementById('announcementDescription');
 const announcementsGrid = document.getElementById('announcementsGrid');
+const annModalTitle = document.getElementById('annModalTitle');
 
-let editingAnnCard = null;
 let editingAnnCardId = null;
 
-// Show form - Hide Add Button
+const toggleAnnModal = (show) => {
+    if (show) announcementModal.classList.remove('hidden');
+    else announcementModal.classList.add('hidden');
+};
+
 if (addAnnouncementBtn) {
     addAnnouncementBtn.addEventListener('click', () => {
-        announcementForm.classList.remove('hidden');
-        addAnnouncementBtn.classList.add('hidden'); 
-        if (announcementTitle) announcementTitle.focus();
-        if (uploadAnnouncementBtn) uploadAnnouncementBtn.textContent = 'Upload';
-        editingAnnCard = null;
+        toggleAnnModal(true);
+        if (annModalTitle) annModalTitle.textContent = "New Announcement";
+        if (uploadAnnouncementBtn) uploadAnnouncementBtn.textContent = "Publish Post";
+        announcementTitle.value = '';
+        announcementDescription.value = '';
         editingAnnCardId = null;
+        announcementTitle.focus();
     });
 }
 
-// Cancel Button Logic
-if (cancelAnnouncementBtn) {
-    cancelAnnouncementBtn.addEventListener('click', () => {
-        announcementForm.classList.add('hidden');
-        if (addAnnouncementBtn) addAnnouncementBtn.classList.remove('hidden');
-        
-        if (announcementTitle) announcementTitle.value = '';
-        if (announcementDescription) announcementDescription.value = '';
-        editingAnnCard = null;
-        editingAnnCardId = null;
-    });
-}
+if (cancelAnnouncementBtn) cancelAnnouncementBtn.addEventListener('click', () => toggleAnnModal(false));
+if (closeAnnModal) closeAnnModal.addEventListener('click', () => toggleAnnModal(false));
 
-// FETCH announcements
 async function fetchAnnouncements() {
     try {
         const response = await fetch('/api/announcements');
@@ -319,7 +298,6 @@ async function fetchAnnouncements() {
     }
 }
 
-// RENDER announcements
 function renderAnnouncements(announcements) {
     if (!announcementsGrid) return;
     announcementsGrid.innerHTML = '';
@@ -335,7 +313,6 @@ function renderAnnouncements(announcements) {
     });
 }
 
-// CREATE announcement card
 function createAnnouncementCard(ann) {
     const card = document.createElement('div');
     card.className = 'bg-white shadow-md rounded-xl p-6 hover:shadow-xl transition flex flex-col justify-between h-full';
@@ -353,21 +330,17 @@ function createAnnouncementCard(ann) {
         </div>
     `;
 
-    // EDIT announcement
     card.querySelector('.editBtn').addEventListener('click', () => {
-        editingAnnCard = card;
         editingAnnCardId = ann.id;
-        if (announcementTitle) announcementTitle.value = ann.title;
-        if (announcementDescription) announcementDescription.value = ann.description;
-
-        if (announcementForm) announcementForm.classList.remove('hidden');
-        if (addAnnouncementBtn) addAnnouncementBtn.classList.add('hidden');
-
-        if (uploadAnnouncementBtn) uploadAnnouncementBtn.textContent = 'Save Changes';
-        if (announcementTitle) announcementTitle.focus();
+        announcementTitle.value = ann.title;
+        announcementDescription.value = ann.description;
+        
+        toggleAnnModal(true);
+        if (annModalTitle) annModalTitle.textContent = "Edit Announcement";
+        if (uploadAnnouncementBtn) uploadAnnouncementBtn.textContent = "Save Changes";
+        announcementTitle.focus();
     });
 
-    // DELETE announcement
     card.querySelector('.deleteBtn').addEventListener('click', async () => {
         if (confirm('Are you sure you want to delete this announcement?')) {
             try {
@@ -387,7 +360,6 @@ function createAnnouncementCard(ann) {
     return card;
 }
 
-// UPLOAD announcement
 if (uploadAnnouncementBtn) {
     uploadAnnouncementBtn.addEventListener('click', async () => {
         const title = announcementTitle.value.trim();
@@ -417,14 +389,10 @@ if (uploadAnnouncementBtn) {
             const result = await response.json();
 
             if (result.success) {
+                toggleAnnModal(false);
                 announcementTitle.value = '';
                 announcementDescription.value = '';
-                announcementForm.classList.add('hidden');
-                if (addAnnouncementBtn) addAnnouncementBtn.classList.remove('hidden');
-
-                editingAnnCard = null;
                 editingAnnCardId = null;
-
                 fetchAnnouncements();
             } else {
                 alert('Error saving announcement: ' + result.message);
@@ -440,7 +408,8 @@ if (uploadAnnouncementBtn) {
 // NEWS SECTION
 // =======================
 const addNewsBtn = document.getElementById('addNewsBtn');
-const newsForm = document.getElementById('newsForm');
+const newsModal = document.getElementById('newsModal'); 
+const closeNewsModal = document.getElementById('closeNewsModal');
 const uploadNewsBtn = document.getElementById('uploadNewsBtn');
 const cancelNewsBtn = document.getElementById('cancelNewsBtn');
 const newsTitle = document.getElementById('newsTitle');
@@ -448,38 +417,32 @@ const newsDescription = document.getElementById('newsDescription');
 const newsLink = document.getElementById('newsLink');
 const newsImage = document.getElementById('newsImage');
 const newsCarousel = document.getElementById('newsCarousel');
+const newsModalTitle = document.getElementById('newsModalTitle');
 
-let editingNews = null;
 let editingNewsId = null;
 
-// Show form - Hide Add Button
+const toggleNewsModal = (show) => {
+    if (show) newsModal.classList.remove('hidden');
+    else newsModal.classList.add('hidden');
+};
+
 if (addNewsBtn) {
     addNewsBtn.addEventListener('click', () => {
-        newsForm.classList.remove('hidden');
-        addNewsBtn.classList.add('hidden');
-        if (newsTitle) newsTitle.focus();
-        if (uploadNewsBtn) uploadNewsBtn.textContent = 'Upload';
-        editingNews = null;
+        toggleNewsModal(true);
+        if (newsModalTitle) newsModalTitle.textContent = "New News Article";
+        if (uploadNewsBtn) uploadNewsBtn.textContent = "Publish News";
+        newsTitle.value = '';
+        newsDescription.value = '';
+        newsImage.value = '';
+        newsLink.value = '';
         editingNewsId = null;
+        newsTitle.focus();
     });
 }
 
-// Cancel Button Logic
-if (cancelNewsBtn) {
-    cancelNewsBtn.addEventListener('click', () => {
-        newsForm.classList.add('hidden');
-        if (addNewsBtn) addNewsBtn.classList.remove('hidden');
+if (cancelNewsBtn) cancelNewsBtn.addEventListener('click', () => toggleNewsModal(false));
+if (closeNewsModal) closeNewsModal.addEventListener('click', () => toggleNewsModal(false));
 
-        if (newsTitle) newsTitle.value = '';
-        if (newsDescription) newsDescription.value = '';
-        if (newsImage) newsImage.value = '';
-        if (newsLink) newsLink.value = '';
-        editingNews = null;
-        editingNewsId = null;
-    });
-}
-
-// FETCH news
 async function fetchNews() {
     try {
         const response = await fetch('/api/news');
@@ -494,7 +457,6 @@ async function fetchNews() {
     }
 }
 
-// RENDER news
 function renderNews(newsItems) {
     if (!newsCarousel) return;
     newsCarousel.innerHTML = '';
@@ -510,7 +472,6 @@ function renderNews(newsItems) {
     });
 }
 
-// CREATE news card
 function createNewsCard(item) {
     const card = document.createElement('a');
     card.href = item.linkUrl || '#';
@@ -535,24 +496,20 @@ function createNewsCard(item) {
         </div>
     `;
 
-    // EDIT news
     card.querySelector('.editNewsBtn').addEventListener('click', (e) => {
         e.preventDefault();
-        editingNews = card;
         editingNewsId = item.id;
-        if (newsTitle) newsTitle.value = item.title;
-        if (newsDescription) newsDescription.value = item.description;
-        if (newsImage) newsImage.value = item.imageUrl;
-        if (newsLink) newsLink.value = item.linkUrl;
+        newsTitle.value = item.title;
+        newsDescription.value = item.description;
+        newsImage.value = item.imageUrl;
+        newsLink.value = item.linkUrl;
 
-        if (newsForm) newsForm.classList.remove('hidden');
-        if (addNewsBtn) addNewsBtn.classList.add('hidden');
-
-        if (uploadNewsBtn) uploadNewsBtn.textContent = 'Save Changes';
-        if (newsTitle) newsTitle.focus();
+        toggleNewsModal(true);
+        if (newsModalTitle) newsModalTitle.textContent = "Edit News Article";
+        if (uploadNewsBtn) uploadNewsBtn.textContent = "Save Changes";
+        newsTitle.focus();
     });
 
-    // DELETE news
     card.querySelector('.deleteNewsBtn').addEventListener('click', async (e) => {
         e.preventDefault();
         if (confirm('Are you sure you want to delete this news?')) {
@@ -573,7 +530,6 @@ function createNewsCard(item) {
     return card;
 }
 
-// UPLOAD news
 if (uploadNewsBtn) {
     uploadNewsBtn.addEventListener('click', async () => {
         const title = newsTitle.value.trim();
@@ -607,16 +563,12 @@ if (uploadNewsBtn) {
             const result = await response.json();
 
             if (result.success) {
+                toggleNewsModal(false);
                 newsTitle.value = '';
                 newsDescription.value = '';
                 newsImage.value = '';
                 newsLink.value = '';
-                newsForm.classList.add('hidden');
-                if (addNewsBtn) addNewsBtn.classList.remove('hidden');
-
-                editingNews = null;
                 editingNewsId = null;
-
                 fetchNews();
             } else {
                 alert('Error saving news: ' + result.message);
@@ -658,7 +610,6 @@ function populateTable(data) {
     const downloadBtn = document.getElementById("downloadMenuBtn");
 
     if (data.length === 0) {
-        // Display "No Records Found" Row
         tableBody.innerHTML = `
             <tr>
                 <td colspan="10" class="text-center p-10 text-gray-500">
@@ -671,7 +622,6 @@ function populateTable(data) {
             </tr>
         `;
 
-        // Disable Download Button
         if (downloadBtn) {
             downloadBtn.disabled = true;
             downloadBtn.classList.add("opacity-50", "cursor-not-allowed");
@@ -680,14 +630,12 @@ function populateTable(data) {
         return;
     }
 
-    // --- Re enable button ---
     if (downloadBtn) {
         downloadBtn.disabled = false;
         downloadBtn.classList.remove("opacity-50", "cursor-not-allowed");
         downloadBtn.classList.add("hover:bg-green-800");
     }
 
-    // Image Modal
     let imageModal = document.body.querySelector("#imageModal");
     if (!imageModal) {
         imageModal = document.createElement("div");
@@ -709,7 +657,6 @@ function populateTable(data) {
         const tr = document.createElement("tr");
         tr.className = "hover:bg-gray-50 transition";
 
-        // Helper for image cells
         const imgCell = (paths) => {
             if (!paths) return "-";
             const firstPath = paths.split(',')[0];
@@ -764,7 +711,6 @@ function populateTable(data) {
         tableBody.appendChild(tr);
     });
 
-    // --- Status Update Logic ---
     tableBody.querySelectorAll("select").forEach(select => {
         if (select.value === "Resolved") {
             select.disabled = true;
@@ -782,9 +728,7 @@ function populateTable(data) {
                 try {
                     const response = await fetch(`/api/reports/${trackingId}/status`, {
                         method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ newStatus: newStatus })
                     });
 
@@ -813,10 +757,8 @@ function populateTable(data) {
         });
     });
 
-    // Image modal Click
     tableBody.querySelectorAll("img[data-img]").forEach(img => img.onclick = e => { modalImage.src = e.target.dataset.img; imageModal.classList.remove("hidden"); });
 
-    // --- Address Modal Click ---
     const addressModal = document.getElementById('addressModal');
     const modalAddressText = document.getElementById('modalAddressText');
 
@@ -827,7 +769,6 @@ function populateTable(data) {
             const lng = btn.dataset.lng;
 
             modalAddressText.textContent = address;
-
             addressModal.classList.remove('hidden');
 
             if (!mapInstance) {
@@ -839,7 +780,6 @@ function populateTable(data) {
                 mapInstance.setView([lat, lng], 16);
             }
 
-            // Clear old markers
             mapInstance.eachLayer((layer) => {
                 if (layer instanceof L.Marker) {
                     mapInstance.removeLayer(layer);
@@ -860,7 +800,6 @@ function populateTable(data) {
         });
     }
 
-    // --- Description Modal Click ---
     const descriptionModal = document.getElementById('descriptionModal');
     const modalDescriptionText = document.getElementById('modalDescriptionText');
 
@@ -884,7 +823,6 @@ function populateTable(data) {
 const searchInput = document.getElementById("searchInput");
 const dateRangeFilter = document.getElementById("dateRangeFilter");
 
-// Helper function to get a date as a "YYYY-MM-DD" string
 function getLocalISOString(date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -951,141 +889,6 @@ if (dateRangeFilter) {
 
 
 // =======================
-// DOWNLOAD MENU
-// =======================
-const downloadMenuBtn = document.getElementById('downloadMenuBtn');
-const downloadMenu = document.getElementById('downloadMenu');
-
-if (downloadMenuBtn) {
-    downloadMenuBtn.addEventListener('click', () => {
-        downloadMenu.classList.toggle('hidden');
-    });
-
-    document.addEventListener('click', (event) => {
-        if (!downloadMenuBtn.contains(event.target) && !downloadMenu.contains(event.target)) {
-            downloadMenu.classList.add('hidden');
-        }
-    });
-}
-
-// --- Helper function to get the date as YYYY-MM-DD ---
-function getFormattedDate() {
-    const today = new Date();
-    return getLocalISOString(today);
-}
-
-// --- CSV Download ---
-function downloadCSV() {
-    const dateStr = getFormattedDate();
-    const systemName = "E-Sumbong kay Kap! Barangay Pulong Buhangin";
-
-    let csv = `${systemName}\n`;
-    csv += `Submitted Reports as of ${dateStr}\n\n`;
-    csv += 'Tracking ID,Name,Category,Description,Address,Date Submitted,Status,Priority\n';
-
-    filteredReports.forEach(r => {
-        const description = `"${r.description.replace(/"/g, '""')}"`;
-        const address = `"${r.address.replace(/"/g, '""')}"`;
-
-        csv += `${r.trackingId},${r.name || 'Anonymous'},${r.category},${description},${address},${r.date},${r.status},${r.priority}\n`;
-    });
-
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `Barangay_Reports_${dateStr}.csv`;
-    link.click();
-    downloadMenu.classList.add('hidden');
-}
-
-// --- Excel Download ---
-function downloadExcel() {
-    const dateStr = getFormattedDate();
-    const systemName = "E-Sumbong kay Kap! Barangay Pulong Buhangin";
-
-    const wb = XLSX.utils.book_new();
-
-    const wsData = [
-        [systemName],
-        [`Submitted Reports as of ${dateStr}`],
-        [],
-        ["Tracking ID", "Name", "Category", "Description", "Address", "Date Submitted", "Status", "Priority"]
-    ];
-
-    filteredReports.forEach(r => {
-        wsData.push([r.trackingId, r.name || 'Anonymous', r.category, r.description, r.address, r.date, r.status, r.priority]);
-    });
-
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-
-    // Column Widths
-    ws['!cols'] = [
-        { wch: 12 }, { wch: 20 }, { wch: 15 }, { wch: 50 }, { wch: 74 }, { wch: 15 }, { wch: 12 }, { wch: 10 }
-    ];
-
-    ws['!merges'] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } },
-        { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } }
-    ];
-
-    XLSX.utils.book_append_sheet(wb, ws, "Reports");
-    XLSX.writeFile(wb, `Barangay_Reports_${dateStr}.xlsx`);
-    downloadMenu.classList.add('hidden');
-}
-
-// --- PDF Download ---
-function downloadPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'landscape' });
-    const dateStr = getFormattedDate();
-    const systemName = "E-Sumbong kay Kap! Barangay Pulong Buhangin";
-    const systemColor = [34, 139, 34];
-
-    if (typeof logoBase64 !== 'undefined' && logoBase64) {
-        doc.addImage(logoBase64, 'PNG', 14, 12, 24, 24);
-    }
-
-    doc.setFontSize(18);
-    doc.setTextColor(systemColor[0], systemColor[1], systemColor[2]);
-    doc.text(systemName, 42, 20);
-    doc.setFontSize(12);
-    doc.setTextColor(100);
-    doc.text(`Submitted Reports as of ${dateStr}`, 42, 28);
-
-    const head = [["Tracking ID", "Name", "Category", "Description", "Address", "Date Submitted", "Status", "Priority"]];
-    const body = filteredReports.map(r => [
-        r.trackingId,
-        r.name || 'Anonymous',
-        r.category,
-        r.description,
-        r.address,
-        r.date,
-        r.status,
-        r.priority
-    ]);
-
-    doc.autoTable({
-        head,
-        body,
-        startY: 40,
-        headStyles: {
-            fillColor: systemColor,
-            textColor: 255,
-            fontStyle: 'bold'
-        },
-        styles: { fontSize: 8 },
-        columnStyles: {
-            3: { cellWidth: 50 },
-            4: { cellWidth: 50 }
-        }
-    });
-
-    doc.save(`Barangay_Reports_${dateStr}.pdf`);
-    downloadMenu.classList.add('hidden');
-}
-
-
-// =======================
 // AUDIT LOG SECTION
 // =======================
 
@@ -1105,6 +908,29 @@ if (auditDownloadBtn) {
             auditDownloadMenu.classList.add('hidden');
         }
     });
+}
+
+// Fetch Audit Logs from API
+async function fetchAuditLogs() {
+    try {
+        const response = await fetch('/api/audit-logs');
+        const data = await response.json();
+
+        if (data.success) {
+            // Format the date here
+            auditLogData = data.logs.map(log => ({
+                ...log,
+                timestamp: new Date(log.timestamp).toLocaleString()
+            }));
+            
+            filteredAuditLogs = auditLogData; // Initialize filter
+            populateAuditLog(filteredAuditLogs);
+        } else {
+            console.error('Failed to load audit logs:', data.message);
+        }
+    } catch (error) {
+        console.error('Network error fetching audit logs:', error);
+    }
 }
 
 function populateAuditLog(data) {
@@ -1148,7 +974,10 @@ function applyAuditFilters() {
         today.setHours(0, 0, 0, 0);
 
         let startDate;
-        const getLogDateStr = (timestamp) => timestamp.split(' ')[0];
+        const getLogDateStr = (timestamp) => {
+            const date = new Date(timestamp);
+            return getLocalISOString(date);
+        };
 
         if (filterValue === "today") {
             const todayString = getLocalISOString(today);
@@ -1389,11 +1218,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     fetchSuggestions();
 
-    populateAuditLog(auditLogData);
+    // Replaced populateAuditLog() with fetchAuditLogs() to use real data
+    fetchAuditLogs(); 
 
     const defaultSection = localStorage.getItem("defaultSection");
     if (defaultSection && document.getElementById(defaultSection)) {
         showSection(defaultSection);
     } else {
         showSection('sectionAnnouncements');
-}});
+    }
+});
