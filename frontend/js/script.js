@@ -225,15 +225,20 @@ if (mapContainer) {
       try {
         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
         const data = await res.json();
-        document.getElementById('address').value = data.display_name || `${lat}, ${lng}`;
+        const addrText = data.display_name || `${lat}, ${lng}`;
+        
+        // UPDATE: Set the hidden input AND the display div
+        document.getElementById('address').value = addrText;
+        document.getElementById('addressDisplay').textContent = addrText;
+        document.getElementById('addressDisplay').classList.remove('text-gray-500', 'italic'); // Make text normal color
+        document.getElementById('addressDisplay').classList.add('text-gray-800');
+
       } catch {
-        document.getElementById('address').value = `${lat}, ${lng}`;
+        const fallbackText = `${lat}, ${lng}`;
+        document.getElementById('address').value = fallbackText;
+        document.getElementById('addressDisplay').textContent = fallbackText;
       }
-    } else {
-      // If clicked outside bounds, show an alert
-      alert("Please pin a location within Barangay Pulong Buhangin.");
-    }
-  });
+  }});
 }
 
 // Default date
@@ -247,6 +252,10 @@ if (dateInput) {
 // File Storage Arrays 
 let barangayIdFiles = [];
 let evidenceFiles = [];
+
+// File Size Limits
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
 
 
 // Anonymous Logic
@@ -344,7 +353,6 @@ function createPreview(file, container, array, allowRemove = true) {
 // Barangay ID Upload
 const barangayIdUploadEl = document.getElementById('barangayIdUpload');
 if (barangayIdUploadEl) {
-
   const prompt = document.getElementById('barangayIdUpload-prompt');
 
   barangayIdUploadEl.addEventListener('change', (e) => {
@@ -352,20 +360,30 @@ if (barangayIdUploadEl) {
     const files = Array.from(e.target.files);
     const allowedTypes = ['image/jpeg', 'image/png']; 
 
+    // Check max file count
     if (files.length + barangayIdFiles.length > 2) {
       alert("You can only upload max of 2 files.");
       e.target.value = null;
       return;
     }
 
+    // Check file types
     const invalidFiles = files.filter(file => !allowedTypes.includes(file.type));
     if (invalidFiles.length > 0) {
-      alert("Invalid file type! Please upload only JPEG or PNG files for the ID.");
+      alert("Invalid file type! Please upload only JPEG or PNG files.");
       e.target.value = null; 
       return; 
     }
 
-if (files.length > 0 && prompt) {
+    // --- NEW: Check File Sizes ---
+    const oversizedFiles = files.filter(file => file.size > MAX_IMAGE_SIZE);
+    if (oversizedFiles.length > 0) {
+        alert(`File is too large! Images must be under 5MB.`);
+        e.target.value = null;
+        return;
+    }
+
+    if (files.length > 0 && prompt) {
         prompt.classList.add('hidden');
     }
 
@@ -377,11 +395,9 @@ if (files.length > 0 && prompt) {
 }
 
 
-
 // Evidence Upload
 const evidenceEl = document.getElementById('evidence');
 if (evidenceEl) {
-
   const prompt = document.getElementById('evidenceUpload-prompt');
 
   evidenceEl.addEventListener('change', (e) => {
@@ -395,6 +411,16 @@ if (evidenceEl) {
       return;
     }
 
+    // Max Video Count (Limit to 1)
+    const currentVideoCount = evidenceFiles.filter(f => f.type.startsWith('video/')).length;
+    const newVideoCount = files.filter(f => f.type.startsWith('video/')).length;
+
+    if (currentVideoCount + newVideoCount > 1) {
+        alert("You can only upload 1 video.");
+        e.target.value = null;
+        return;
+    }
+
     const invalidFiles = files.filter(file => !allowedTypes.includes(file.type));
     if (invalidFiles.length > 0) {
       alert("Invalid file type! Please upload only JPEG, PNG, or MP4 files.");
@@ -402,12 +428,30 @@ if (evidenceEl) {
       return; 
     }
 
+    // --- NEW: Check File Sizes (Different for Images vs Videos) ---
+    for (let file of files) {
+        if (file.type.startsWith('image/') && file.size > MAX_IMAGE_SIZE) {
+            alert(`Image "${file.name}" is too large! Max 5MB.`);
+            e.target.value = null;
+            return;
+        }
+        if (file.type.startsWith('video/') && file.size > MAX_VIDEO_SIZE) {
+            alert(`Video "${file.name}" is too large! Max 50MB.`);
+            e.target.value = null;
+            return;
+        }
+    }
+
+    if (files.length > 0 && prompt) {
+        prompt.classList.add('hidden');
+    }
+
     files.forEach(f => {
       evidenceFiles.push(f);
       createPreview(f, preview, evidenceFiles);
     });
   });
-} 
+}
 
 
 // Category Logic
@@ -455,16 +499,14 @@ if (form) {
         return `${prefix}-${formattedNumber}`;
     }
 
-    form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", (e) => {
         e.preventDefault(); 
 
-        // Check if the form is valid (all 'required' fields are filled)
         if (!form.checkValidity()) {
              form.reportValidity();
              return;
         }
 
-        // Get all the data from the form
         const isAnonymous = document.getElementById('anonymous').checked;
         const categoryValue = document.getElementById('category').value;
         
@@ -479,7 +521,6 @@ if (form) {
             lng: document.getElementById('lng').value
         };
 
-        // Show the confirmation modal with the data
         confirmDetails.innerHTML = `
             Name: ${formData.fullname || "Anonymous"}<br>
             Category: ${formData.category}<br>
@@ -491,8 +532,60 @@ if (form) {
 
         confirmBarangayPreview.innerHTML = "";
         confirmEvidencePreview.innerHTML = "";
-        barangayIdFiles.forEach(file => createPreview(file, confirmBarangayPreview, barangayIdFiles, false));
-        evidenceFiles.forEach(file => createPreview(file, confirmEvidencePreview, evidenceFiles, false));
+
+// --- UPDATED HELPER: Handles both Image and Video Enlargement ---
+        const addClickToEnlarge = (file, container) => {
+            const url = URL.createObjectURL(file);
+            const isImage = file.type.startsWith('image/');
+            const isVideo = file.type.startsWith('video/');
+            
+            let mediaEl;
+
+            if (isImage) {
+                mediaEl = document.createElement('img');
+                mediaEl.src = url;
+                mediaEl.className = "w-24 h-24 object-cover rounded border-2 border-white shadow-sm cursor-pointer hover:scale-105 hover:border-green-500 transition duration-200";
+            } else if (isVideo) {
+                mediaEl = document.createElement('video');
+                mediaEl.src = url;
+                mediaEl.className = "w-24 h-24 object-cover rounded border-2 border-white shadow-sm cursor-pointer hover:scale-105 hover:border-green-500 transition duration-200 bg-black";
+                // Don't show controls in thumbnail, just the video frame
+            }
+
+            if (mediaEl) {
+                mediaEl.title = "Click to view";
+                
+                // CLICK EVENT
+                mediaEl.onclick = (e) => {
+                    e.stopPropagation();
+                    const lightbox = document.getElementById('lightboxModal');
+                    const lightboxImg = document.getElementById('lightboxImage');
+                    const lightboxVid = document.getElementById('lightboxVideo');
+                    
+                    if (lightbox) {
+                        // Reset previous state
+                        lightboxImg.classList.add('hidden');
+                        lightboxVid.classList.add('hidden');
+                        lightboxVid.pause(); // Stop any previous video
+                        lightboxVid.src = "";
+
+                        if (isImage) {
+                            lightboxImg.src = url;
+                            lightboxImg.classList.remove('hidden');
+                        } else if (isVideo) {
+                            lightboxVid.src = url;
+                            lightboxVid.classList.remove('hidden');
+                        }
+                        
+                        lightbox.classList.remove('hidden');
+                    }
+                };
+                container.appendChild(mediaEl);
+            }
+        };
+
+        barangayIdFiles.forEach(file => addClickToEnlarge(file, confirmBarangayPreview));
+        evidenceFiles.forEach(file => addClickToEnlarge(file, confirmEvidencePreview));
 
         modal.classList.remove("hidden");
     });
@@ -557,4 +650,34 @@ if (form) {
         successModal.classList.add("hidden");
         location.reload(); 
     };
+
+// --- UPDATED: Close Lightbox Logic (Handles pausing video) ---
+    const lightbox = document.getElementById('lightboxModal');
+    if (lightbox) {
+        const closeBtn = document.getElementById('closeLightbox');
+        const lightboxVid = document.getElementById('lightboxVideo');
+
+        const closeLightbox = () => {
+            lightbox.classList.add('hidden');
+            // IMPORTANT: Pause video when closing so audio stops
+            if (lightboxVid) {
+                lightboxVid.pause();
+                lightboxVid.src = ""; 
+            }
+        };
+        
+        if (closeBtn) {
+            closeBtn.onclick = (e) => {
+                e.preventDefault();
+                closeLightbox();
+            };
+        }
+
+        lightbox.onclick = (e) => {
+            if (e.target === lightbox) {
+                closeLightbox();
+            }
+        };
+      }
 }
+

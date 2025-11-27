@@ -163,37 +163,41 @@
         name: "Rotchen P. Parangue",
         role: "Front-End Developer",
         school: "Polytechnic University of the Philippines - SMB",
-        email: "rotchen@gmail.com",
+        email: "rotchenparangue@gmail.com",
         img: "Images/Rotchen.jpg",
         desc: "Designs engaging and accessible interfaces to create a seamless user experience across devices.",
-        fbLink: "https://www.facebook.com/share/1BjgPHAz3X/"
+        linkedinLink: "https://www.linkedin.com/in/msschennn/",
+        githubLink: "https://github.com/ParangueRotchenP"
       },
       {
         name: "Ashley Prescilla V. Villanueva",
         role: "Front-End Developer",
         school: "Polytechnic University of the Philippines - SMB",
-        email: "ashley@gmail.com",
+        email: "ashleyprescilla825@gmail.com",
         img: "Images/Ashley.jpg",
         desc: "Brings design concepts to life with precision, interactivity, and aesthetic consistency.",
-        fbLink: "https://www.facebook.com/"
+        linkedinLink: "https://www.linkedin.com/in/villanueva-ashley-prescilla-v-a14298388/",
+        githubLink: "https://github.com/AshleyPrescilla"
       },
       {
         name: "Rainn Jewel S. Castillo",
         role: "Project Manager",
         school: "Polytechnic University of the Philippines - SMB",
-        email: "rainn@gmail.com",
+        email: "rainncastillo24@gmail.com",
         img: "Images/Rainn.jpg",
         desc: "Leads the team with clarity, innovation, and passion — ensuring E-Sumbong Kay Kap! delivers impactful community service.",
-        fbLink: "https://www.facebook.com/rainnjewel.castillo24" 
+        linkedinLink: "https://www.linkedin.com/in/rainn-jewel-s-castillo-50278039a/",
+        githubLink: "https://github.com/berryrainn"
       },
       {
         name: "Victor Jr. Bat-og",
         role: "Back-End Developer",
         school: "Polytechnic University of the Philippines - SMB",
-        email: "victor@gmail.com",
+        email: "victorjrb1011@gmail.com",
         img: "Images/Victor.jpg",
         desc: "Manages the database and system logic that power E-Sumbong Kay Kap!’s reliable performance.",
-        fbLink: "https://www.facebook.com/share/1BgNnNVzyC/"
+        linkedinLink: "https://www.linkedin.com/in/victor-jr-bat-og-45b923397/",
+        githubLink: "https://github.com/im-vic-11"
       },
       {
         name: "Erickson James P. David",
@@ -202,7 +206,8 @@
         email: "ericksonjames0411@gmail.com",
         img: "Images/Erickson.jpg",
         desc: "Develops secure backend systems and ensures smooth coordination between user reports and data processing.",
-        fbLink: "https://www.facebook.com/share/1GD41Ro8qW/"
+        linkedinLink: "https://www.linkedin.com/in/erickson-james-david-54008b32b/",
+        githubLink: "https://github.com/ericksonjamesdavid"
       }
     ];
 
@@ -236,10 +241,16 @@
             <a href="mailto:${member.email}" class="text-xs text-gray-600 hover:text-green-700 hover:underline flex items-center transition font-medium truncate">
                 <i class="fas fa-envelope mr-2 text-green-500"></i>Email
             </a>
-            ${member.fbLink ? `
+            ${member.linkedinLink ? `
               <span class="text-gray-300 text-xs">|</span>
-              <a href="${member.fbLink}" target="_blank" title="Facebook" class="text-green-600 hover:text-blue-800 transition transform hover:scale-110">
-                <i class="fab fa-facebook text-base"></i>
+              <a href="${member.linkedinLink}" target="_blank" title="LinkedIn" class="text-green-700 hover:text-blue-700 transition transform hover:scale-110">
+                <i class="fab fa-linkedin text-base"></i>
+              </a>
+            ` : ''}
+            ${member.githubLink ? `
+              <span class="text-gray-300 text-xs">|</span>
+              <a href="${member.githubLink}" target="_blank" title="GitHub" class="text-green-700 hover:text-black transition transform hover:scale-110">
+                <i class="fab fa-github text-base"></i>
               </a>
             ` : ''}
           </div>
