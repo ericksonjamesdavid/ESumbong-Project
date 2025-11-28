@@ -119,13 +119,12 @@ DROP TABLE IF EXISTS `suggestions`;
 
 CREATE TABLE `suggestions` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `fullname` varchar(255) DEFAULT NULL,
-  `email` varchar(255) DEFAULT NULL,
+  `suggestion_id` varchar(20) NOT NULL UNIQUE,
   `suggestion_text` text NOT NULL,
   `is_read` tinyint(1) DEFAULT '0',
   `date_submitted` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
 --
@@ -134,9 +133,26 @@ CREATE TABLE `suggestions` (
 
 LOCK TABLES `suggestions` WRITE;
 
-INSERT INTO `suggestions` VALUES (1,'Anonymous',NULL,'binabasa nyo ba talaga mga reklamo ko?',1,'2025-11-14 08:56:08');
-
 UNLOCK TABLES;
+
+--
+-- Table structure for table `audit_logs`
+--
+
+DROP TABLE IF EXISTS `audit_logs`;
+
+CREATE TABLE `audit_logs` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `admin_id` int DEFAULT NULL,
+  `user_name` varchar(255) DEFAULT 'Anonymous',
+  `action_type` varchar(50) NOT NULL,
+  `table_name` varchar(100) DEFAULT NULL,
+  `record_id` int DEFAULT NULL,
+  `description` text,
+  `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`admin_id`) REFERENCES `admins`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping routines for database 'barangay_db'
@@ -203,6 +219,7 @@ END ;;
 DELIMITER ;
 
 DELIMITER ;;
+DROP PROCEDURE IF EXISTS `sp_DeleteSuggestion` ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_DeleteSuggestion`(
     IN p_suggestion_id INT
 )
@@ -316,12 +333,12 @@ END ;;
 DELIMITER ;
 
 DELIMITER ;;
+DROP PROCEDURE IF EXISTS `sp_GetSuggestions` ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_GetSuggestions`()
 BEGIN
     SELECT 
         id,
-        fullname,
-        email,
+        suggestion_id AS suggestionId,
         suggestion_text AS suggestionText,
         is_read AS isRead,
         DATE_FORMAT(date_submitted, '%Y-%m-%d') AS date
@@ -331,6 +348,7 @@ END ;;
 DELIMITER ;
 
 DELIMITER ;;
+DROP PROCEDURE IF EXISTS `sp_MarkSuggestionAsRead` ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_MarkSuggestionAsRead`(
     IN p_suggestion_id INT
 )
@@ -383,14 +401,28 @@ END ;;
 DELIMITER ;
 
 DELIMITER ;;
+DROP PROCEDURE IF EXISTS `sp_SubmitSuggestion` ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_SubmitSuggestion`(
-    IN p_fullname VARCHAR(255),
-    IN p_email VARCHAR(255),
     IN p_suggestion_text TEXT
 )
 BEGIN
-    INSERT INTO suggestions (fullname, email, suggestion_text)
-    VALUES (p_fullname, p_email, p_suggestion_text);
+    DECLARE v_suggestion_id VARCHAR(20);
+    DECLARE v_date_part VARCHAR(8);
+    DECLARE v_counter INT;
+    
+    -- Generate date part: YYYYMMDD
+    SET v_date_part = DATE_FORMAT(NOW(), '%Y%m%d');
+    
+    -- Count suggestions submitted today
+    SELECT COUNT(*) + 1 INTO v_counter
+    FROM suggestions
+    WHERE DATE(date_submitted) = CURDATE();
+    
+    -- Create suggestion_id: YYYYMMDD + 3-digit counter (e.g., 20251128001)
+    SET v_suggestion_id = CONCAT(v_date_part, LPAD(v_counter, 3, '0'));
+    
+    INSERT INTO suggestions (suggestion_id, suggestion_text)
+    VALUES (v_suggestion_id, p_suggestion_text);
 END ;;
 DELIMITER ;
 
@@ -437,6 +469,40 @@ BEGIN
     UPDATE reports
     SET status = p_new_status
     WHERE tracking_id = p_tracking_id;
+END ;;
+DELIMITER ;
+
+-- Audit Log Procedures
+
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_LogAuditAction`(
+    IN p_admin_id INT,
+    IN p_user_name VARCHAR(255),
+    IN p_action_type VARCHAR(50),
+    IN p_table_name VARCHAR(100),
+    IN p_record_id INT,
+    IN p_description TEXT
+)
+BEGIN
+    INSERT INTO audit_logs (admin_id, user_name, action_type, table_name, record_id, description)
+    VALUES (p_admin_id, COALESCE(p_user_name, 'Anonymous'), p_action_type, p_table_name, p_record_id, p_description);
+END ;;
+DELIMITER ;
+
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_GetAuditLogs`()
+BEGIN
+    SELECT 
+        id,
+        admin_id AS adminId,
+        user_name AS user,
+        action_type AS actionType,
+        table_name AS tableName,
+        record_id AS recordId,
+        description,
+        DATE_FORMAT(timestamp, '%Y-%m-%d %H:%i:%s') AS timestamp
+    FROM audit_logs
+    ORDER BY timestamp DESC;
 END ;;
 DELIMITER ;
 

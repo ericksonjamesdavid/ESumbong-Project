@@ -1,50 +1,60 @@
 const express = require('express');
 const mysql = require('mysql2');
-const path = require('path'); // Used to handle file paths
-const multer = require('multer'); // For handling file uploads (not fully implemented yet)
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const path = require('path');
+const multer = require('multer');
+require('dotenv').config();
 
-// --- SECRET KEY ---
-const JWT_SECRET = 'esumbong_password_secret_key_11142025';
+// Import middleware
+const { verifyJWT } = require('./middleware/auth');
+
+// Import handlers
+const { handleAdminLogin, handlePasswordUpdate } = require('./handlers/adminHandlers');
+const { handleReportSubmission, handleGetAllReports, handleUpdateReportStatus, handleGetReportByTrackingId } = require('./handlers/reportHandlers');
+const { handleCreateAnnouncement, handleUpdateAnnouncement, handleDeleteAnnouncement, handleGetAnnouncements } = require('./handlers/announcementHandlers');
+const { handleCreateNews, handleUpdateNews, handleDeleteNews, handleGetNews } = require('./handlers/newsHandlers');
+const { handleSubmitSuggestion, handleGetSuggestions, handleMarkSuggestionRead, handleDeleteSuggestion } = require('./handlers/suggestionHandlers');
+const { handleGetDashboardStats, handleGetAuditLogs } = require('./handlers/dashboardHandlers');
+
+// ============================================================
+// CONFIGURATION
+// ============================================================
+
+const JWT_SECRET = process.env.JWT_SECRET;
+const PORT = process.env.PORT || 3000;
 
 // Initialize Express app
 const app = express();
-const port = 3000;
 
-
-// These lines let your server read JSON and form data from the frontend
-app.use(express.json()); 
-app.use(express.urlencoded({ extended: true })); 
-
-
-// This tells Express to serve all static files (HTML, CSS, JS, Images)
-// from the '../frontend' directory.
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
+// File Upload Configuration
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const uploadPath = path.join(__dirname, '..', 'frontend', 'uploads');
         cb(null, uploadPath);
     },
     filename: (req, file, cb) => {
-        const uniqueName =  Date.now() + '-' + file.originalname;
+        const uniqueName = Date.now() + '-' + file.originalname;
         cb(null, uniqueName);
     }
 });
 
 const upload = multer({ storage: storage });
 
-// --- Database Connection ---
-// Update with your MySQL username and password
+// ============================================================
+// DATABASE CONNECTION
+// ============================================================
+
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root', // Or your MySQL username
-    password: 'root', // Your MySQL password
-    database: 'barangay_db' // The database you created
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
 });
 
-// Try to connect
 db.connect(err => {
     if (err) {
         console.error('Error connecting to MySQL:', err);
@@ -53,336 +63,125 @@ db.connect(err => {
     console.log('Connected to MySQL Database!');
 });
 
+// ============================================================
+// ROUTES - ADMIN AUTHENTICATION
+// ============================================================
 
-// --- API Endpoints ---
-// This endpoint listens for 'POST' requests to '/api/submit-report'
+app.post('/api/admin/login', (req, res) => {
+    handleAdminLogin(db, req, res);
+});
+
+app.patch('/api/admin/update-password', verifyJWT, (req, res) => {
+    handlePasswordUpdate(db, req, res);
+});
+
+// ============================================================
+// ROUTES - REPORT MANAGEMENT
+// ============================================================
+
 app.post('/api/submit-report', upload.fields([
-    { name: 'barangayIdFile', maxCount: 2 }, 
-    { name: 'evidenceFiles', maxCount: 7 }   
+    { name: 'barangayIdFile', maxCount: 2 },
+    { name: 'evidenceFiles', maxCount: 7 }
 ]), (req, res) => {
-    
-    const { 
-        trackingId, 
-        fullname, 
-        category, 
-        description, 
-        priority, 
-        address,
-        lat,
-        lng
-    } = req.body;
-
-    const barangayIdPath = req.files.barangayIdFile 
-        ? req.files.barangayIdFile.map(file => `uploads/${file.filename}`).join(',') 
-        : null;
-        
-    const evidencePath = req.files.evidenceFiles
-        ? req.files.evidenceFiles.map(file => `uploads/${file.filename}`).join(',')
-        : null;
-
-    // Call the stored procedure
-    const sql = `CALL sp_SubmitReport(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-    const finalFullname = (!fullname || fullname === "null") ? "Anonymous" : fullname;
-    
-    const values = [
-        trackingId, 
-        finalFullname, 
-        category, 
-        description, 
-        priority, 
-        address, 
-        lat, 
-        lng,
-        barangayIdPath, 
-        evidencePath
-    ];
-
-    db.query(sql, values, (err, result) => {
-        if (err) {
-            console.error('Error executing stored procedure:', err);
-            return res.status(500).json({ success: false, message: 'Database error' });
-        }
-        
-        res.status(200).json({ success: true, message: 'Report submitted!', trackingId: trackingId });
-    });
+    handleReportSubmission(db, req, res);
 });
 
-// --- GET ALL REPORTS ---
 app.get('/api/reports', (req, res) => {
-    
-    const sql = `CALL sp_GetAllReports()`;
-
-    db.query(sql, (err, results) => {
-        if (err) {
-            console.error('Error fetching reports:', err);
-            return res.status(500).json({ success: false, message: 'Database error' });
-        }
-
-        res.status(200).json({ success: true, reports: results[0] });
-    });
+    handleGetAllReports(db, req, res);
 });
 
-// --- UPDATE REPORT STATUS ---
 app.patch('/api/reports/:trackingId/status', (req, res) => {
-    
-    const { trackingId } = req.params;
-    
-    const { newStatus } = req.body;
-
-    if (!['Pending', 'In Progress', 'Resolved'].includes(newStatus)) {
-        return res.status(400).json({ success: false, message: 'Invalid status value' });
-    }
-
-    const sql = `CALL sp_UpdateReportStatus(?, ?)`;
-    const values = [trackingId, newStatus];
-
-    db.query(sql, values, (err, result) => {
-        if (err) {
-            console.error('Error updating status:', err);
-            return res.status(500).json({ success: false, message: 'Database error' });
-        }
-
-        res.status(200).json({ success: true, message: 'Status updated successfully' });
-    });
+    handleUpdateReportStatus(db, req, res);
 });
 
-// --- SUGGESTIONS API ENDPOINTS ---
+app.get('/api/reports/:trackingId', (req, res) => {
+    handleGetReportByTrackingId(db, req, res);
+});
+
+// ============================================================
+// ROUTES - ANNOUNCEMENTS
+// ============================================================
+
+app.post('/api/announcements', verifyJWT, (req, res) => {
+    handleCreateAnnouncement(db, req, res);
+});
+
+app.patch('/api/announcements/:id', verifyJWT, (req, res) => {
+    handleUpdateAnnouncement(db, req, res);
+});
+
+app.delete('/api/announcements/:id', verifyJWT, (req, res) => {
+    handleDeleteAnnouncement(db, req, res);
+});
+
+app.get('/api/announcements', (req, res) => {
+    handleGetAnnouncements(db, req, res);
+});
+
+// ============================================================
+// ROUTES - NEWS
+// ============================================================
+
+app.post('/api/news', verifyJWT, (req, res) => {
+    handleCreateNews(db, req, res);
+});
+
+app.patch('/api/news/:id', verifyJWT, (req, res) => {
+    handleUpdateNews(db, req, res);
+});
+
+app.delete('/api/news/:id', verifyJWT, (req, res) => {
+    handleDeleteNews(db, req, res);
+});
+
+app.get('/api/news', (req, res) => {
+    handleGetNews(db, req, res);
+});
+
+// ============================================================
+// ROUTES - SUGGESTIONS
+// ============================================================
 
 app.post('/api/suggestions', (req, res) => {
-    const { fullname, email, suggestion } = req.body;
-
-    const sql = `CALL sp_SubmitSuggestion(?, ?, ?)`;
-    const values = [fullname || 'Anonymous', email || null, suggestion];
-
-    db.query(sql, values, (err, result) => {
-        if (err) {
-            console.error('Error submitting suggestion:', err);
-            return res.status(500).json({ success: false, message: 'Database error' });
-        }
-        res.status(200).json({ success: true, message: 'Suggestion submitted!' });
-    });
+    handleSubmitSuggestion(db, req, res);
 });
 
 app.get('/api/suggestions', (req, res) => {
-    const sql = `CALL sp_GetSuggestions()`;
-    
-    db.query(sql, (err, results) => {
-        if (err) {
-            console.error('Error fetching suggestions:', err);
-            return res.status(500).json({ success: false, message: 'Database error' });
-        }
-        res.status(200).json({ success: true, suggestions: results[0] });
-    });
+    handleGetSuggestions(db, req, res);
 });
 
-app.patch('/api/suggestions/:id/read', (req, res) => {
-    const { id } = req.params;
-    const sql = `CALL sp_MarkSuggestionAsRead(?)`;
-
-    db.query(sql, [id], (err, result) => {
-        if (err) {
-            console.error('Error marking as read:', err);
-            return res.status(500).json({ success: false, message: 'Database error' });
-        }
-        res.status(200).json({ success: true, message: 'Marked as read' });
-    });
+app.patch('/api/suggestions/:id/read', verifyJWT, (req, res) => {
+    handleMarkSuggestionRead(db, req, res);
 });
 
-app.delete('/api/suggestions/:id', (req, res) => {
-    const { id } = req.params;
-    const sql = `CALL sp_DeleteSuggestion(?)`;
-
-    db.query(sql, [id], (err, result) => {
-        if (err) {
-            console.error('Error deleting suggestion:', err);
-            return res.status(500).json({ success: false, message: 'Database error' });
-        }
-        res.status(200).json({ success: true, message: 'Suggestion deleted' });
-    });
+app.delete('/api/suggestions/:id', verifyJWT, (req, res) => {
+    handleDeleteSuggestion(db, req, res);
 });
 
-// --- ANNOUNCEMENTS API ENDPOINTS ---
-app.get('/api/announcements', (req, res) => {
-    const sql = `CALL sp_GetAnnouncements()`;
-    db.query(sql, (err, results) => {
-        if (err) {
-            console.error('Error fetching announcements:', err);
-            return res.status(500).json({ success: false, message: 'Database error' });
-        }
-        res.status(200).json({ success: true, announcements: results[0] });
-    });
-});
+// ============================================================
+// ROUTES - DASHBOARD & AUDIT
+// ============================================================
 
-app.post('/api/announcements', (req, res) => {
-    const { title, description } = req.body;
-    const sql = `CALL sp_CreateAnnouncement(?, ?)`;
-    db.query(sql, [title, description], (err, results) => {
-        if (err) {
-            console.error('Error creating announcement:', err);
-            return res.status(500).json({ success: false, message: 'Database error' });
-        }
-        res.status(201).json({ success: true, newAnnouncement: results[0][0] });
-    });
-});
-
-app.patch('/api/announcements/:id', (req, res) => {
-    const { id } = req.params;
-    const { title, description } = req.body;
-    const sql = `CALL sp_UpdateAnnouncement(?, ?, ?)`;
-    db.query(sql, [id, title, description], (err, result) => {
-        if (err) {
-            console.error('Error updating announcement:', err);
-            return res.status(500).json({ success: false, message: 'Database error' });
-        }
-        res.status(200).json({ success: true, message: 'Announcement updated' });
-    });
-});
-
-app.delete('/api/announcements/:id', (req, res) => {
-    const { id } = req.params;
-    const sql = `CALL sp_DeleteAnnouncement(?)`;
-    db.query(sql, [id], (err, result) => {
-        if (err) {
-            console.error('Error deleting announcement:', err);
-            return res.status(500).json({ success: false, message: 'Database error' });
-        }
-        res.status(200).json({ success: true, message: 'Announcement deleted' });
-    });
-});
-
-// --- NEWS API ENDPOINTS ---
-app.get('/api/news', (req, res) => {
-    const sql = `CALL sp_GetNews()`;
-    db.query(sql, (err, results) => {
-        if (err) {
-            console.error('Error fetching news:', err);
-            return res.status(500).json({ success: false, message: 'Database error' });
-        }
-        res.status(200).json({ success: true, news: results[0] });
-    });
-});
-
-app.post('/api/news', (req, res) => {
-    const { title, description, image, link } = req.body;
-    const sql = `CALL sp_CreateNews(?, ?, ?, ?)`;
-    db.query(sql, [title, description, image, link], (err, results) => {
-        if (err) {
-            console.error('Error creating news:', err);
-            return res.status(500).json({ success: false, message: 'Database error' });
-        }
-        res.status(201).json({ success: true, newNews: results[0][0] });
-    });
-});
-
-app.patch('/api/news/:id', (req, res) => {
-    const { id } = req.params;
-    const { title, description, image, link } = req.body;
-    const sql = `CALL sp_UpdateNews(?, ?, ?, ?, ?)`;
-    db.query(sql, [id, title, description, image, link], (err, result) => {
-        if (err) {
-            console.error('Error updating news:', err);
-            return res.status(500).json({ success: false, message: 'Database error' });
-        }
-        res.status(200).json({ success: true, message: 'News updated' });
-    });
-});
-
-app.delete('/api/news/:id', (req, res) => {
-    const { id } = req.params;
-    const sql = `CALL sp_DeleteNews(?)`;
-    db.query(sql, [id], (err, result) => {
-        if (err) {
-            console.error('Error deleting news:', err);
-            return res.status(500).json({ success: false, message: 'Database error' });
-        }
-        res.status(200).json({ success: true, message: 'News deleted' });
-    });
-});
-
-
-// --- DASHBOARD STATS ---
 app.get('/api/dashboard/stats', (req, res) => {
-    
-    const sql = `CALL sp_GetDashboardStats()`;
-
-    db.query(sql, (err, results) => {
-        if (err) {
-            console.error('Error fetching dashboard stats:', err);
-            return res.status(500).json({ success: false, message: 'Database error' });
-        }
-
-        // results[0] contains the array of stats
-        res.status(200).json({ success: true, stats: results[0] });
-    });
+    handleGetDashboardStats(db, req, res);
 });
 
-// --- ADMIN LOGIN ---
-app.post('/api/admin/login', (req, res) => {
-    const { username, password } = req.body;
-
-    if (!username || !password) {
-        return res.status(400).json({ success: false, message: 'Username and password are required.' });
-    }
-
-    const sql = "SELECT * FROM admins WHERE username = ?";
-    
-    db.query(sql, [username], async (err, results) => {
-        if (err) {
-            console.error('Database error:', err);
-            return res.status(500).json({ success: false, message: 'Database error' });
-        }
-
-        if (results.length === 0) {
-            return res.status(401).json({ success: false, message: 'Invalid username or password' });
-        }
-
-        const admin = results[0];
-
-        try {
-            const isMatch = await bcrypt.compare(password, admin.password_hash);
-
-            if (!isMatch) {
-                return res.status(401).json({ success: false, message: 'Invalid username or password' });
-            }
-
-            const token = jwt.sign(
-                { id: admin.id, username: admin.username }, 
-                JWT_SECRET, 
-                { expiresIn: '1h' } 
-            );
-            
-            res.status(200).json({ success: true, message: 'Login successful', token: token });
-
-        } catch (error) {
-            console.error('Error comparing password:', error);
-            res.status(500).json({ success: false, message: 'Server error' });
-        }
-    });
+app.get('/api/audit-logs', verifyJWT, (req, res) => {
+    handleGetAuditLogs(db, req, res);
 });
 
-// --- GET A SINGLE REPORT BY ID ---
-app.get('/api/reports/:trackingId', (req, res) => {
-    
-    const { trackingId } = req.params;
+// ============================================================
+// ERROR HANDLING - 404
+// ============================================================
 
-    const sql = `CALL sp_GetReportByTrackingId(?)`;
-
-    db.query(sql, [trackingId], (err, results) => {
-        if (err) {
-            console.error('Error fetching report:', err);
-            return res.status(500).json({ success: false, message: 'Database error' });
-        }
-
-        if (results[0].length > 0) {
-            res.status(200).json({ success: true, report: results[0][0] });
-        } else {
-            res.status(404).json({ success: false, message: 'Report not found' });
-        }
-    });
+app.use((req, res) => {
+    res.status(404).json({ success: false, message: 'Endpoint not found' });
 });
 
-// --- Start the Server Listener ---
-app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
-    console.log(`Your frontend should be visible at http://localhost:${port}`);
+// ============================================================
+// START SERVER
+// ============================================================
+
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
