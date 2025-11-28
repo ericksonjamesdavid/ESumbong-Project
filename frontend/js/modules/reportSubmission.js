@@ -1,0 +1,238 @@
+// =======================
+// REPORT SUBMISSION MODULE
+// =======================
+
+import { barangayIdFiles, evidenceFiles } from './fileUpload.js';
+import { generateTrackingID } from './reportForm.js';
+
+export const initReportSubmission = () => {
+    const reportForm = document.getElementById('reportForm');
+    if (!reportForm) return;
+
+    reportForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const trackingId = generateTrackingID();
+
+        const formData = new FormData(reportForm);
+        formData.append('trackingId', trackingId);
+
+        if (barangayIdFiles.length > 0) {
+            barangayIdFiles.forEach(file => {
+                formData.append('barangayIdFile', file);
+            });
+        }
+
+        if (evidenceFiles.length > 0) {
+            evidenceFiles.forEach(file => {
+                formData.append('evidenceFiles', file);
+            });
+        }
+
+        const category = document.getElementById('category').value;
+        const otherCategory = document.getElementById('otherCategory').value;
+        const finalCategory = category === 'other' ? otherCategory : category;
+        formData.set('category', finalCategory);
+
+        const fullname = document.getElementById('fullname').value || null;
+        const anonymous = document.getElementById('anonymous').checked;
+        const description = document.getElementById('description').value;
+        const priority = document.getElementById('priority').value;
+        const address = document.getElementById('address').value;
+        const lat = document.getElementById('lat').value;
+        const lng = document.getElementById('lng').value;
+
+        formData.set('fullname', anonymous ? 'null' : (fullname || ''));
+        formData.set('description', description);
+        formData.set('priority', priority);
+        formData.set('address', address);
+        formData.set('lat', lat);
+        formData.set('lng', lng);
+
+        // Show confirmation modal
+        showConfirmationModal(formData, trackingId);
+    });
+
+    // Confirmation button
+    const confirmBtn = document.getElementById('confirmBtn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', async () => {
+            const formData = window.currentFormData;
+            if (!formData) return;
+
+            document.getElementById('confirmModal').classList.add('hidden');
+            document.getElementById('loadingModal').classList.remove('hidden');
+
+            try {
+                const response = await fetch('/api/submit-report', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                document.getElementById('loadingModal').classList.add('hidden');
+
+                if (result.success) {
+                    document.getElementById('trackCode').textContent = result.trackingId;
+                    document.getElementById('successModal').classList.remove('hidden');
+                    reportForm.reset();
+                    barangayIdFiles.length = 0;
+                    evidenceFiles.length = 0;
+                    document.getElementById('barangayIdPreview').innerHTML = '';
+                    document.getElementById('evidencePreview').innerHTML = '';
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Submission error:', error);
+                document.getElementById('loadingModal').classList.add('hidden');
+                alert('Network error. Please try again.');
+            }
+        });
+    }
+
+    // Cancel button
+    const cancelBtn = document.getElementById('cancelBtn');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            document.getElementById('confirmModal').classList.add('hidden');
+        });
+    }
+
+    // Close success button
+    const closeSuccessBtn = document.getElementById('closeSuccessBtn');
+    if (closeSuccessBtn) {
+        closeSuccessBtn.addEventListener('click', () => {
+            document.getElementById('successModal').classList.add('hidden');
+        });
+    }
+};
+
+// Helper function: Add click-to-enlarge functionality to media elements
+const addClickToEnlarge = (file, container) => {
+    const url = URL.createObjectURL(file);
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+    
+    let mediaEl;
+
+    if (isImage) {
+        mediaEl = document.createElement('img');
+        mediaEl.src = url;
+        mediaEl.className = "w-24 h-24 object-cover rounded border-2 border-white shadow-sm cursor-pointer hover:scale-105 hover:border-green-500 transition duration-200";
+    } else if (isVideo) {
+        mediaEl = document.createElement('video');
+        mediaEl.src = url;
+        mediaEl.className = "w-24 h-24 object-cover rounded border-2 border-white shadow-sm cursor-pointer hover:scale-105 hover:border-green-500 transition duration-200 bg-black";
+    }
+
+    if (mediaEl) {
+        mediaEl.title = "Click to view";
+        
+        // CLICK EVENT: Open lightbox
+        mediaEl.onclick = (e) => {
+            e.stopPropagation();
+            const lightbox = document.getElementById('lightboxModal');
+            const lightboxImg = document.getElementById('lightboxImage');
+            const lightboxVid = document.getElementById('lightboxVideo');
+            
+            if (lightbox) {
+                // Reset previous state
+                lightboxImg.classList.add('hidden');
+                lightboxVid.classList.add('hidden');
+                lightboxVid.pause();
+                lightboxVid.src = "";
+
+                if (isImage) {
+                    lightboxImg.src = url;
+                    lightboxImg.classList.remove('hidden');
+                } else if (isVideo) {
+                    lightboxVid.src = url;
+                    lightboxVid.classList.remove('hidden');
+                }
+                
+                lightbox.classList.remove('hidden');
+            }
+        };
+        container.appendChild(mediaEl);
+    }
+};
+
+// Helper function: Close lightbox modal
+const closeLightbox = () => {
+    const lightbox = document.getElementById('lightboxModal');
+    const lightboxVid = document.getElementById('lightboxVideo');
+    
+    if (lightbox) {
+        lightbox.classList.add('hidden');
+        if (lightboxVid) {
+            lightboxVid.pause();
+            lightboxVid.src = "";
+        }
+    }
+};
+
+// Initialize lightbox close button
+export const initLightboxClose = () => {
+    const lightbox = document.getElementById('lightboxModal');
+    if (lightbox) {
+        const closeBtn = document.getElementById('closeLightbox');
+        
+        if (closeBtn) {
+            closeBtn.onclick = (e) => {
+                e.preventDefault();
+                closeLightbox();
+            };
+        }
+
+        lightbox.onclick = (e) => {
+            if (e.target === lightbox) {
+                closeLightbox();
+            }
+        };
+    }
+};
+
+function showConfirmationModal(formData, trackingId) {
+    const modal = document.getElementById('confirmModal');
+    const details = document.getElementById('confirmDetails');
+    
+    const fullname = formData.get('fullname') === 'null' ? 'Anonymous' : formData.get('fullname');
+    const category = formData.get('category');
+    const description = formData.get('description');
+    const priority = formData.get('priority');
+    const address = formData.get('address');
+
+    details.innerHTML = `
+        <p><strong>Tracking ID:</strong> ${trackingId}</p>
+        <p><strong>Name:</strong> ${fullname}</p>
+        <p><strong>Category:</strong> ${category}</p>
+        <p><strong>Priority:</strong> ${priority}</p>
+        <p><strong>Address:</strong> ${address}</p>
+        <p><strong>Description:</strong> ${description}</p>
+    `;
+
+    // Show barangay ID preview with click-to-enlarge
+    const confirmBarangayPreview = document.getElementById('confirmBarangayPreview');
+    confirmBarangayPreview.innerHTML = '';
+    const barangayFiles = formData.getAll('barangayIdFile');
+    if (barangayFiles && barangayFiles.length > 0) {
+        barangayFiles.forEach(file => {
+            addClickToEnlarge(file, confirmBarangayPreview);
+        });
+    }
+
+    // Show evidence preview with click-to-enlarge
+    const confirmEvidencePreview = document.getElementById('confirmEvidencePreview');
+    confirmEvidencePreview.innerHTML = '';
+    const evidenceFilesList = formData.getAll('evidenceFiles');
+    if (evidenceFilesList && evidenceFilesList.length > 0) {
+        evidenceFilesList.forEach(file => {
+            addClickToEnlarge(file, confirmEvidencePreview);
+        });
+    }
+
+    window.currentFormData = formData;
+    modal.classList.remove('hidden');
+}

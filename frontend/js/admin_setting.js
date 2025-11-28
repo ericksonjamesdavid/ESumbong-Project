@@ -41,8 +41,8 @@ function hidePasswordError() {
   }
 }
 
-// --- UPDATED: updatePassword function ---
-function updatePassword() {
+// --- UPDATED: updatePassword function with API call ---
+async function updatePassword() {
   // Hide any old errors first
   hidePasswordError();
   const matchError = document.getElementById("matchError");
@@ -55,14 +55,9 @@ function updatePassword() {
   const newPassVal = document.getElementById("newPass").value;
   const confirmVal = document.getElementById("confirmPass").value;
 
-  const savedPass = "password123"; // for testing only
-
   // Validation checks using the new error box
   if (!current || !newPassVal || !confirmVal) {
     return showPasswordError("All fields are required");
-  }
-  if (current !== savedPass) {
-    return showPasswordError("Current password is incorrect");
   }
   if (newPassVal !== confirmVal) {
     if (matchError) {
@@ -76,12 +71,41 @@ function updatePassword() {
     return showPasswordError("Password does not meet security requirements. Please check all rules.");
   }
 
-  // Success
-  alert("Password updated successfully");
-  // Optionally, clear the form fields
-  document.getElementById("currentPass").value = "";
-  document.getElementById("newPass").value = "";
-  document.getElementById("confirmPass").value = "";
+  // Send to backend API
+  try {
+    const response = await fetchWithAuth('/api/admin/update-password', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        currentPassword: current,
+        newPassword: newPassVal,
+        confirmPassword: confirmVal
+      })
+    });
+
+    if (!response) return; // Token expired
+
+    const result = await response.json();
+
+    if (result.success) {
+      showPasswordError(""); // Clear errors
+      alert("Password updated successfully!");
+      // Clear the form fields
+      document.getElementById("currentPass").value = "";
+      document.getElementById("newPass").value = "";
+      document.getElementById("confirmPass").value = "";
+      
+      // Reset password rules display
+      if (document.getElementById("passwordRules")) {
+        document.getElementById("passwordRules").classList.add("hidden");
+      }
+    } else {
+      showPasswordError(result.message || "Failed to update password");
+    }
+  } catch (error) {
+    console.error('Error updating password:', error);
+    showPasswordError("Network error. Please try again.");
+  }
 }
 
 function togglePassword(id, icon) {

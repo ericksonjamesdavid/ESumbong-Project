@@ -58,11 +58,9 @@
       return;
     }
 
-    // Always send null for name and email
+    // Send suggestion text to backend
     let formData = {
-        suggestion: suggestion,
-        fullname: null,
-        email: null
+        suggestionText: suggestion
     };
 
     try {
