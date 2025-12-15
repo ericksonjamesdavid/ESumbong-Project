@@ -53,6 +53,18 @@
       <i class="fa-solid fa-file-lines"></i>
       <span>Reports</span>
     </button>
+
+    <button onclick="localStorage.setItem('defaultSection','sectionAuditLog');location.href='admin_dashboard.html';"
+            class="w-4/5 flex items-center justify-left gap-2 px-4 py-2 rounded-lg hover:bg-green-700 hover:scale-105 transition">
+      <i class="fa-solid fa-file-lines"></i>
+      <span>Audit Log</span>
+    </button>
+
+    <button onclick="localStorage.setItem('defaultSection','sectionSuggestions');location.href='admin_dashboard.html';"
+            class="w-4/5 flex items-center justify-left gap-2 px-4 py-2 rounded-lg hover:bg-green-700 hover:scale-105 transition">
+      <i class="fa-solid fa-lightbulb"></i>
+      <span>Suggestions</span>
+    </button>
   </nav>
 
   <div class="p-4 flex flex-col items-center space-y-3 pb-8">

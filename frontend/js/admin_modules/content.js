@@ -83,18 +83,21 @@ function renderAnnouncementList(items) {
 
     items.forEach(item => {
         const el = document.createElement('div');
-        el.className = "bg-white p-4 rounded-lg border border-gray-200 flex justify-between items-start hover:shadow-md transition";
+        el.className = "bg-white p-4 rounded-lg border border-gray-200 hover:shadow-md transition"; 
+
         el.innerHTML = `
-            <div>
-                <h4 class="font-bold text-green-900 text-lg">${item.title}</h4>
-                <p class="text-xs text-gray-400 mb-2">${item.date}</p>
-                <p class="text-sm text-gray-600 line-clamp-2">${item.description}</p>
-            </div>
-            <div class="flex gap-2 ml-4">
+        <div class="flex justify-between items-start **mb-1**"> 
+            <h4 class="font-bold text-green-900 text-lg">${item.title}</h4>
+            
+            <div class="flex gap-2 ml-4 flex-shrink-0">
                 <button class="edit-ann bg-gray-100 hover:bg-green-100 text-green-700 px-3 py-1 rounded transition text-sm font-medium">Edit</button>
                 <button class="delete-ann bg-gray-100 hover:bg-red-100 text-red-600 px-3 py-1 rounded transition text-sm font-medium">Delete</button>
             </div>
-        `;
+        </div>
+        
+        <p class="text-xs text-gray-400 **mb-1**">${item.date}</p>
+        <p class="text-sm text-gray-600 line-clamp-2">${item.description}</p>
+    `;
 
         el.querySelector('.edit-ann').addEventListener('click', () => {
             editingAnnCardId = item.id;
@@ -172,6 +175,7 @@ async function deleteItem(id, type) {
             const result = await response.json();
             if (result.success) {
                 loadContentManagement();
+                if (typeof refreshAuditLog === 'function') refreshAuditLog();
             } else {
                 alert('Error: ' + result.message);
             }
@@ -223,6 +227,7 @@ if (uploadAnnouncementBtn) {
             if (result.success) {
                 toggleAnnModal(false);
                 loadContentManagement();
+                if (typeof refreshAuditLog === 'function') refreshAuditLog();
             } else {
                 alert('Error: ' + result.message);
             }
@@ -268,6 +273,7 @@ if (uploadNewsBtn) {
             if (result.success) {
                 toggleNewsModal(false);
                 loadContentManagement();
+                if (typeof refreshAuditLog === 'function') refreshAuditLog();
             } else {
                 alert('Error: ' + result.message);
             }

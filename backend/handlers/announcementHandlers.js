@@ -37,16 +37,26 @@ const handleUpdateAnnouncement = (db, req, res) => {
 // Delete Announcement Handler
 const handleDeleteAnnouncement = (db, req, res) => {
     const { id } = req.params;
-    const sql = `CALL sp_DeleteAnnouncement(?)`;
-    db.query(sql, [id], (err, result) => {
-        if (err) {
-            console.error('Error deleting announcement:', err);
-            return res.status(500).json({ success: false, message: 'Database error' });
+    
+    // First, get announcement details before deleting
+    db.query('SELECT title FROM announcements WHERE id = ?', [id], (selectErr, selectResult) => {
+        if (selectErr || !selectResult || selectResult.length === 0) {
+            return res.status(404).json({ success: false, message: 'Announcement not found' });
         }
         
-        logAuditAction(db, req.admin.id, 'Admin', 'ANNOUNCEMENT_DELETED', 'announcements', id, `Deleted announcement (ID: ${id}).`);
+        const title = selectResult[0].title;
+        const sql = `CALL sp_DeleteAnnouncement(?)`;
         
-        res.status(200).json({ success: true, message: 'Announcement deleted' });
+        db.query(sql, [id], (err, result) => {
+            if (err) {
+                console.error('Error deleting announcement:', err);
+                return res.status(500).json({ success: false, message: 'Database error' });
+            }
+            
+            logAuditAction(db, req.admin.id, 'Admin', 'ANNOUNCEMENT_DELETED', 'announcements', id, `Deleted announcement: "${title}".`);
+            
+            res.status(200).json({ success: true, message: 'Announcement deleted' });
+        });
     });
 };
 

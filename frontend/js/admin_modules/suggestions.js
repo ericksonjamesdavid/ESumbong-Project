@@ -9,6 +9,11 @@ const dateEl = document.getElementById('suggestion-date');
 const bodyEl = document.getElementById('suggestion-body');
 const deleteBtn = document.getElementById('delete-suggestion-btn');
 
+// Only initialize if elements exist (for refactored dashboard)
+if (!suggestionListEl || !placeholderEl || !contentEl) {
+    console.warn('Suggestions module: Required DOM elements not found. Will initialize when elements are available.');
+}
+
 async function fetchSuggestions() {
     try {
         const response = await fetch('/api/suggestions');
@@ -45,36 +50,53 @@ function renderSuggestionList() {
 
 function showSuggestionContent(id) {
     if (!id) {
-        placeholderEl.classList.remove('hidden');
-        contentEl.classList.add('hidden');
+        if (placeholderEl) placeholderEl.classList.remove('hidden');
+        if (contentEl) contentEl.classList.add('hidden');
         currentSuggestionId = null;
         return;
     }
     const suggestion = allSuggestions.find(s => s.id === id);
     if (!suggestion) return;
     currentSuggestionId = id;
-    idEl.textContent = suggestion.suggestionId;
-    dateEl.textContent = suggestion.date;
-    bodyEl.textContent = suggestion.suggestionText;
-    placeholderEl.classList.add('hidden');
-    contentEl.classList.remove('hidden');
+    if (idEl) idEl.textContent = suggestion.suggestionId;
+    if (dateEl) dateEl.textContent = suggestion.date;
+    if (bodyEl) bodyEl.textContent = suggestion.suggestionText;
+    if (placeholderEl) placeholderEl.classList.add('hidden');
+    if (contentEl) contentEl.classList.remove('hidden');
 }
 
 async function markAsRead(id) {
     const response = await fetchWithAuth(`/api/suggestions/${id}/read`, { method: 'PATCH' });
     if (!response) return; // Token expired
+    const data = await response.json();
+    if (!data || !data.success) {
+        alert('Failed to mark suggestion as read.');
+        return;
+    }
     const s = allSuggestions.find(i => i.id === id);
     s.isRead = 1;
     renderSuggestionList();
+    // Refresh audit logs so the action is visible immediately in the audit log table
+    if (typeof refreshAuditLog === 'function') refreshAuditLog();
 }
 
+// Only attach event listener if element exists
 if (deleteBtn) {
     deleteBtn.addEventListener('click', async () => {
         if (currentSuggestionId && confirm('Delete this suggestion?')) {
             const response = await fetchWithAuth(`/api/suggestions/${currentSuggestionId}`, { method: 'DELETE' });
             if (response) { // Only reload if token is still valid
                 fetchSuggestions();
+                if (typeof refreshAuditLog === 'function') refreshAuditLog();
             }
         }
     });
 }
+
+// Initialize suggestions when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    // Re-query elements in case they were added dynamically
+    if (document.getElementById('suggestion-list')) {
+        fetchSuggestions();
+    }
+});

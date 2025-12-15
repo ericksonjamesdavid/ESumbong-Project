@@ -83,7 +83,7 @@ DROP TABLE IF EXISTS `reports`;
 
 CREATE TABLE `reports` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `tracking_id` varchar(10) NOT NULL,
+    `tracking_id` varchar(30) NOT NULL,
   `fullname` varchar(255) DEFAULT NULL,
   `barangay_id_path` varchar(255) DEFAULT NULL,
   `category` varchar(100) NOT NULL,
@@ -107,7 +107,11 @@ CREATE TABLE `reports` (
 
 LOCK TABLES `reports` WRITE;
 
-INSERT INTO `reports` VALUES (6,'TR-686','Jane Dela Cruz','uploads/1763086692886-sample_id.png','road',NULL,'the road is cracked','uploads/1763086692887-Screenshot 2025-11-14 101652.png','2025-11-14 02:18:12','Low (Minor issue, not urgent)','Caltex, Norzagaray-Santa Maria Road, Pulong Buhangin, Pulong Yantok, Santa Maria, Bulacan, Central Luzon, 3022, Philippines',14.86373290,120.99287796,'Pending'),(8,'TR-985','Anonymous',NULL,'streetlight',NULL,'broken streetlight making the road be dark at night','uploads/1763106338538-Screenshot 2025-11-14 154443.png','2025-11-13 07:45:38','Low (Minor issue, not urgent)','Pulong Buhangin, Santa Maria, Bulacan, Central Luzon, 3022, Philippines',14.86465374,120.99048328,'Pending'),(9,'TR-317','Anonymous',NULL,'garbage',NULL,'the garbage collector is not collecting our garbage for a month','uploads/1763106696132-Screenshot 2025-11-14 155031.png','2025-11-12 07:51:36','High (Urgent, immediate action required)','Pulong Buhangin, Pulong Yantok, Santa Maria, Bulacan, Central Luzon, 3012, Philippines',14.88321072,121.01176071,'Resolved'),(10,'TR-152','Anonymous',NULL,'road',NULL,'the road here is always flooded even if there is no rain','uploads/1763106886314-Screenshot 2025-11-14 155416.png','2025-11-10 07:54:46','Low (Minor issue, not urgent)','Pulong Buhangin, Santa Maria, Bulacan, Central Luzon, 3012, Philippines',14.88168442,121.00465393,'In Progress'),(11,'TR-776','Anonymous',NULL,'garbage',NULL,'they are throwing their garbage at our house','uploads/1763107546171-Screenshot 2025-11-14 160501.png','2025-11-14 08:05:46','High (Urgent, immediate action required)','Pulong Buhangin, Santa Maria, Bulacan, Central Luzon, 3022, Philippines',14.86336788,120.98930740,'Pending');
+INSERT INTO `reports` VALUES (6,'TR-686','Jane Dela Cruz','uploads/1763086692886-sample_id.png','road',NULL,'the road is cracked','uploads/1763086692887-Screenshot 2025-11-14 101652.png','2025-11-14 02:18:12','Low (Minor issue, not urgent)','Caltex, Norzagaray-Santa Maria Road, Pulong Buhangin, Pulong Yantok, Santa Maria, Bulacan, Central Luzon, 3022, Philippines',14.86373290,120.99287796,'Pending'),
+(8,'TR-985','Anonymous',NULL,'streetlight',NULL,'broken streetlight making the road be dark at night','uploads/1763106338538-Screenshot 2025-11-14 154443.png','2025-11-13 07:45:38','Low (Minor issue, not urgent)','Pulong Buhangin, Santa Maria, Bulacan, Central Luzon, 3022, Philippines',14.86465374,120.99048328,'Pending'),
+(9,'TR-317','Anonymous',NULL,'garbage',NULL,'the garbage collector is not collecting our garbage for a month','uploads/1763106696132-Screenshot 2025-11-14 155031.png','2025-11-12 07:51:36','High (Urgent, immediate action required)','Pulong Buhangin, Pulong Yantok, Santa Maria, Bulacan, Central Luzon, 3012, Philippines',14.88321072,121.01176071,'Resolved'),
+(10,'TR-152','Anonymous',NULL,'road',NULL,'the road here is always flooded even if there is no rain','uploads/1763106886314-Screenshot 2025-11-14 155416.png','2025-11-10 07:54:46','Low (Minor issue, not urgent)','Pulong Buhangin, Santa Maria, Bulacan, Central Luzon, 3012, Philippines',14.88168442,121.00465393,'In Progress'),
+(11,'TR-776','Anonymous',NULL,'garbage',NULL,'they are throwing their garbage at our house','uploads/1763107546171-Screenshot 2025-11-14 160501.png','2025-11-14 08:05:46','High (Urgent, immediate action required)','Pulong Buhangin, Santa Maria, Bulacan, Central Luzon, 3022, Philippines',14.86336788,120.98930740,'Pending');
 
 UNLOCK TABLES;
 
@@ -306,7 +310,7 @@ DELIMITER ;
 
 DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_GetReportByTrackingId`(
-    IN p_tracking_id VARCHAR(10)
+    IN p_tracking_id VARCHAR(30)
 )
 BEGIN
     SELECT 
@@ -360,8 +364,45 @@ END ;;
 DELIMITER ;
 
 DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_GetNextTrackingId`(
+    IN p_category VARCHAR(100),
+    IN p_date VARCHAR(8),
+    OUT o_tracking_id VARCHAR(30)
+)
+BEGIN
+    DECLARE v_category_abbr VARCHAR(3);
+    DECLARE v_counter INT;
+    DECLARE v_category_abbr_map VARCHAR(100);
+    
+    -- Map category to abbreviation
+    SELECT CASE 
+        WHEN LOWER(p_category) = 'garbage' THEN 'GRB'
+        WHEN LOWER(p_category) = 'streetlight' OR LOWER(p_category) = 'street light' THEN 'STL'
+        WHEN LOWER(p_category) = 'road' OR LOWER(p_category) = 'road repair' THEN 'RD'
+        WHEN LOWER(p_category) = 'water' THEN 'WTR'
+        ELSE 'OTH'
+    END INTO v_category_abbr;
+    
+    -- Count reports submitted today with same category prefix
+    SELECT COALESCE(COUNT(*), 0) + 1 INTO v_counter
+    FROM reports
+    WHERE DATE_FORMAT(date_submitted, '%Y%m%d') = p_date
+    AND (
+        (v_category_abbr = 'GRB' AND LOWER(category) = 'garbage')
+        OR (v_category_abbr = 'STL' AND (LOWER(category) = 'streetlight' OR LOWER(category) = 'street light'))
+        OR (v_category_abbr = 'RD' AND (LOWER(category) = 'road' OR LOWER(category) = 'road repair'))
+        OR (v_category_abbr = 'WTR' AND LOWER(category) = 'water')
+        OR (v_category_abbr = 'OTH' AND LOWER(category) = 'other')
+    );
+    
+    -- Create tracking_id: CATEGORY-YYYYMMDD-### (e.g., GRB-20251215-001)
+    SET o_tracking_id = CONCAT(v_category_abbr, '-', p_date, '-', LPAD(v_counter, 3, '0'));
+END ;;
+DELIMITER ;
+
+DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_SubmitReport`(
-    IN p_tracking_id VARCHAR(10),
+    IN p_tracking_id VARCHAR(30),
     IN p_fullname VARCHAR(255),
     IN p_category VARCHAR(100),
     IN p_description TEXT,
@@ -462,7 +503,7 @@ DELIMITER ;
 
 DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_UpdateReportStatus`(
-    IN p_tracking_id VARCHAR(10),
+    IN p_tracking_id VARCHAR(30),
     IN p_new_status ENUM('Pending', 'In Progress', 'Resolved')
 )
 BEGIN
@@ -507,4 +548,4 @@ END ;;
 DELIMITER ;
 
 
--- Dump completed on 2025-11-15 17:51:21
+-- DROP DATABASE barangay_db;

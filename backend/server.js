@@ -28,6 +28,19 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// CORS Middleware - set headers for all responses
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
+
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
 // File Upload Configuration
@@ -78,6 +91,32 @@ app.patch('/api/admin/update-password', verifyJWT, (req, res) => {
 // ============================================================
 // ROUTES - REPORT MANAGEMENT
 // ============================================================
+
+app.post('/api/next-tracking-id', (req, res) => {
+    const { category, date } = req.body;
+    
+    if (!category || !date) {
+        return res.status(400).json({ success: false, message: 'Missing category or date' });
+    }
+    
+    db.query('CALL sp_GetNextTrackingId(?, ?, @trackingId)', [category, date], (err, results) => {
+        if (err) {
+            console.error('Error generating tracking ID:', err);
+            return res.status(500).json({ success: false, message: 'Error generating tracking ID' });
+        }
+        
+        // Fetch the output parameter
+        db.query('SELECT @trackingId AS trackingId', (err, results) => {
+            if (err) {
+                console.error('Error fetching tracking ID:', err);
+                return res.status(500).json({ success: false, message: 'Error fetching tracking ID' });
+            }
+            
+            const trackingId = results[0].trackingId;
+            res.status(200).json({ success: true, trackingId: trackingId });
+        });
+    });
+});
 
 app.post('/api/submit-report', upload.fields([
     { name: 'barangayIdFile', maxCount: 2 },

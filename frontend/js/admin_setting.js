@@ -24,13 +24,34 @@ document.addEventListener('click', (event) => {
   }
 });
 
-// --- NEW: Helper function to show the main error message ---
-function showPasswordError(msg) {
-  const passwordError = document.getElementById("passwordError");
-  if (passwordError) {
-    passwordError.innerHTML = `<span class="block sm:inline">${msg}</span>`;
-    passwordError.classList.remove("hidden");
-  }
+// ---Helper function to show the main error/success message  ---
+function showPasswordError(msg, isSuccess = false) {
+    const passwordError = document.getElementById("passwordError");
+    
+    if (passwordError) {
+        // 1. Reset classes to ensure no lingering styles
+        passwordError.className = ''; 
+        
+        // 2. Set the content
+        passwordError.innerHTML = `<span class="block sm:inline">${msg}</span>`;
+
+        // 3. Apply the base and conditional styles
+        passwordError.classList.remove("hidden");
+        
+        if (isSuccess) {
+            // Apply GREEN Tailwind CSS classes for success
+            passwordError.classList.add(
+                'p-3', 'rounded', 'font-medium', 
+                'bg-green-100', 'text-green-800', 'border', 'border-green-400'
+            );
+        } else {
+            // Apply RED Tailwind CSS classes for error (default)
+            passwordError.classList.add(
+                'p-3', 'rounded', 'font-medium', 
+                'bg-red-100', 'text-red-800', 'border', 'border-red-400'
+            );
+        }
+    }
 }
 
 // --- NEW: Helper function to hide the main error message ---
@@ -88,19 +109,23 @@ async function updatePassword() {
     const result = await response.json();
 
     if (result.success) {
-      showPasswordError(""); // Clear errors
-      alert("Password updated successfully!");
+      showPasswordError(result.msg || "Password updated successfully! Redirecting to login...", true);
       // Clear the form fields
       document.getElementById("currentPass").value = "";
       document.getElementById("newPass").value = "";
       document.getElementById("confirmPass").value = "";
+
+      // Redirect to sign-in after successful change
+            setTimeout(() => {
+                window.location.href = "admin_signin.html";
+            }, 3000);
       
       // Reset password rules display
       if (document.getElementById("passwordRules")) {
         document.getElementById("passwordRules").classList.add("hidden");
       }
     } else {
-      showPasswordError(result.message || "Failed to update password");
+      showPasswordError(result.msg || "Failed to update password");
     }
   } catch (error) {
     console.error('Error updating password:', error);

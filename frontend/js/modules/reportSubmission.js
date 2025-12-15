@@ -3,7 +3,9 @@
 // =======================
 
 import { barangayIdFiles, evidenceFiles } from './fileUpload.js';
-import { generateTrackingID } from './reportForm.js';
+import { generateTrackingID, resetFormLayout } from './reportForm.js';
+import { initDashboardCharts } from './charts.js';
+import { clearReportMarker } from './map.js';
 
 export const initReportSubmission = () => {
     const reportForm = document.getElementById('reportForm');
@@ -12,7 +14,12 @@ export const initReportSubmission = () => {
     reportForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const trackingId = generateTrackingID();
+        const trackingId = await generateTrackingID();
+        
+        if (!trackingId || trackingId.startsWith('ERR')) {
+            alert('Error generating tracking ID. Please try again.');
+            return;
+        }
 
         const formData = new FormData(reportForm);
         formData.append('trackingId', trackingId);
@@ -33,6 +40,8 @@ export const initReportSubmission = () => {
         const otherCategory = document.getElementById('otherCategory').value;
         const finalCategory = category === 'other' ? otherCategory : category;
         formData.set('category', finalCategory);
+        // Also include original otherCategory explicitly so the server can use it if needed
+        formData.set('otherCategory', otherCategory || '');
 
         const fullname = document.getElementById('fullname').value || null;
         const anonymous = document.getElementById('anonymous').checked;
@@ -73,14 +82,33 @@ export const initReportSubmission = () => {
 
                 document.getElementById('loadingModal').classList.add('hidden');
 
+                if (!response.ok) {
+                    console.error('Server error:', response.status, result);
+                    alert('Server error: ' + (result.error || result.message || response.statusText));
+                    return;
+                }
+
                 if (result.success) {
                     document.getElementById('trackCode').textContent = result.trackingId;
                     document.getElementById('successModal').classList.remove('hidden');
+                    // Clear form and previews so user can submit again immediately
                     reportForm.reset();
+                    window.currentFormData = null;
                     barangayIdFiles.length = 0;
                     evidenceFiles.length = 0;
-                    document.getElementById('barangayIdPreview').innerHTML = '';
-                    document.getElementById('evidencePreview').innerHTML = '';
+                    const bidPrev = document.getElementById('barangayIdPreview');
+                    const evPrev = document.getElementById('evidencePreview');
+                    if (bidPrev) bidPrev.innerHTML = '';
+                    if (evPrev) evPrev.innerHTML = '';
+                    // Reset map marker/address and UI layout (show prompts, category/anonymous layout)
+                    try { clearReportMarker(); } catch (e) {}
+                    try { resetFormLayout(); } catch (e) {}
+                    // Refresh client charts on the page, if present
+                    try { initDashboardCharts(); } catch (e) {}
+                    // If admin dashboard is open, refresh its stats as well
+                    try { if (typeof fetchDashboardStats === 'function') fetchDashboardStats(); } catch (e) {}
+                    // Reset date to today in the form (in case reset cleared it)
+                    try { const dateEl = document.getElementById('dateSubmitted'); if (dateEl) dateEl.value = new Date().toISOString().split('T')[0]; } catch (e) {}
                 } else {
                     alert('Error: ' + result.message);
                 }
@@ -205,7 +233,6 @@ function showConfirmationModal(formData, trackingId) {
     const address = formData.get('address');
 
     details.innerHTML = `
-        <p><strong>Tracking ID:</strong> ${trackingId}</p>
         <p><strong>Name:</strong> ${fullname}</p>
         <p><strong>Category:</strong> ${category}</p>
         <p><strong>Priority:</strong> ${priority}</p>

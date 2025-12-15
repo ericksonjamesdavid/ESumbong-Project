@@ -27,13 +27,13 @@ export const initReportMap = () => {
         attribution: '© OpenStreetMap'
     }).addTo(map);
 
-    let marker;
+    window.reportMarker = null;
     map.on('click', async (e) => {
         const { lat, lng } = e.latlng;
 
         if (bounds.contains(e.latlng)) {
-            if (marker) marker.setLatLng([lat, lng]);
-            else marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+            if (window.reportMarker) window.reportMarker.setLatLng([lat, lng]);
+            else window.reportMarker = L.marker([lat, lng], { draggable: true }).addTo(map);
 
             document.getElementById('lat').value = lat;
             document.getElementById('lng').value = lng;
@@ -57,6 +57,29 @@ export const initReportMap = () => {
     });
 
     return map;
+};
+
+export const clearReportMarker = () => {
+    try {
+        if (window.reportMarker && window.mapInstance) {
+            window.mapInstance.removeLayer(window.reportMarker);
+            window.reportMarker = null;
+        }
+    } catch (e) {}
+    try {
+        const addrEl = document.getElementById('addressDisplay');
+        const addrInput = document.getElementById('address');
+        const lat = document.getElementById('lat');
+        const lng = document.getElementById('lng');
+        if (addrEl && addrInput && !addrInput.value) {
+            addrEl.textContent = 'Click the map to pin location...';
+            addrEl.classList.remove('text-gray-800');
+            addrEl.classList.add('text-gray-500', 'italic');
+        }
+        if (lat) lat.value = '';
+        if (lng) lng.value = '';
+        if (addrInput) addrInput.value = '';
+    } catch (e) {}
 };
 
 export const initDefaultDate = () => {

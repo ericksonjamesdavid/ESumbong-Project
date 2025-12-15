@@ -4,7 +4,7 @@
 // This file imports and initializes all modules
 
 import { initAnimationObserver, initHomePageSetup } from './modules/animations.js';
-import { initNewsCarousel } from './modules/carousel.js';
+import { initAnnouncementsAndNews } from './modules/announcementsNews.js';
 import { initDashboardCharts } from './modules/charts.js';
 import { initReportMap, initDefaultDate } from './modules/map.js';
 import { initBarangayIdUpload, initEvidenceUpload } from './modules/fileUpload.js';
@@ -21,8 +21,11 @@ document.addEventListener("DOMContentLoaded", () => {
     initHomePageSetup();
 
     // Homepage features
-    initNewsCarousel();
-    initDashboardCharts();
+    initAnnouncementsAndNews();
+    // Initialize dashboard charts only when chart elements exist on the page
+    if (document.getElementById('barChart') || document.getElementById('pieChart') || document.getElementById('legendList')) {
+        initDashboardCharts();
+    }
 
     // Report page features
     initReportMap();

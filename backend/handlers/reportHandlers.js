@@ -10,7 +10,8 @@ const handleReportSubmission = (db, req, res) => {
         priority, 
         address,
         lat,
-        lng
+        lng,
+        otherCategory
     } = req.body;
 
     const barangayIdPath = req.files.barangayIdFile 
@@ -24,11 +25,13 @@ const handleReportSubmission = (db, req, res) => {
     // Call the stored procedure
     const sql = `CALL sp_SubmitReport(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     const finalFullname = (!fullname || fullname === "null") ? "Anonymous" : fullname;
+    // If client sent an explicit otherCategory, prefer it when category is 'other' or empty
+    const storedCategory = (!category || category === 'other') && otherCategory ? otherCategory : category;
     
     const values = [
         trackingId, 
         finalFullname, 
-        category, 
+        storedCategory, 
         description, 
         priority, 
         address, 
@@ -42,12 +45,14 @@ const handleReportSubmission = (db, req, res) => {
         if (err) {
             console.error('Error executing stored procedure:', err.message, err.code, err.sqlMessage);
             console.error('Values passed:', values);
-            return res.status(500).json({ success: false, message: 'Database error', error: err.message });
+            console.error('Full error object:', JSON.stringify(err, null, 2));
+            return res.status(500).json({ success: false, message: 'Database error', error: err.message, sqlMessage: err.sqlMessage });
         }
         
         // Log the report submission to audit_logs
-        const auditDescription = `New report submitted: ${category.charAt(0).toUpperCase() + category.slice(1)} (${trackingId}).`;
-        logAuditAction(db, null, finalFullname === 'Anonymous' ? 'Resident' : finalFullname, 'REPORT_SUBMITTED', 'reports', null, auditDescription);
+        const displayCategory = storedCategory || 'Other';
+        const auditDescription = `New report submitted: ${String(displayCategory).charAt(0).toUpperCase() + String(displayCategory).slice(1)} (${trackingId}).`;
+        logAuditAction(db, null, 'Resident', 'REPORT_SUBMITTED', 'reports', null, auditDescription);
         
         res.status(200).json({ success: true, message: 'Report submitted!', trackingId: trackingId });
     });

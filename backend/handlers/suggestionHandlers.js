@@ -1,4 +1,5 @@
 const { logAuditAction } = require('./adminHandlers');
+const DEBUG_AUDIT = process.env.DEBUG_AUDIT === 'true' || false;
 
 // Submit Suggestion Handler
 const handleSubmitSuggestion = (db, req, res) => {
@@ -51,11 +52,11 @@ const handleMarkSuggestionRead = (db, req, res) => {
         db.query('SELECT suggestion_id FROM suggestions WHERE id = ?', [id], (queryErr, queryResult) => {
             const suggestionId = queryResult && queryResult[0] ? queryResult[0].suggestion_id : 'Unknown';
             const description = `Marked suggestion ${suggestionId} as read.`;
-            console.log('AUDIT LOG DEBUG - Suggestion ID:', suggestionId, 'Description:', description);
+            if (DEBUG_AUDIT) console.log(`AUDIT LOG DEBUG - Suggestion ID: ${suggestionId} Description: ${description}`);
             logAuditAction(db, req.admin.id, 'Admin', 'SUGGESTION_READ', 'suggestions', id, description);
+            // Return the suggestionId in the response so client can confirm and UI can refresh with exact id
+            res.status(200).json({ success: true, message: 'Marked as read', suggestionId });
         });
-        
-        res.status(200).json({ success: true, message: 'Marked as read' });
     });
 };
 

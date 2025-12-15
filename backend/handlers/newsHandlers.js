@@ -37,16 +37,26 @@ const handleUpdateNews = (db, req, res) => {
 // Delete News Handler
 const handleDeleteNews = (db, req, res) => {
     const { id } = req.params;
-    const sql = `CALL sp_DeleteNews(?)`;
-    db.query(sql, [id], (err, result) => {
-        if (err) {
-            console.error('Error deleting news:', err);
-            return res.status(500).json({ success: false, message: 'Database error' });
+    
+    // First, get news details before deleting
+    db.query('SELECT title FROM news WHERE id = ?', [id], (selectErr, selectResult) => {
+        if (selectErr || !selectResult || selectResult.length === 0) {
+            return res.status(404).json({ success: false, message: 'News article not found' });
         }
         
-        logAuditAction(db, req.admin.id, 'Admin', 'NEWS_DELETED', 'news', id, `Deleted news article (ID: ${id}).`);
+        const title = selectResult[0].title;
+        const sql = `CALL sp_DeleteNews(?)`;
         
-        res.status(200).json({ success: true, message: 'News deleted' });
+        db.query(sql, [id], (err, result) => {
+            if (err) {
+                console.error('Error deleting news:', err);
+                return res.status(500).json({ success: false, message: 'Database error' });
+            }
+            
+            logAuditAction(db, req.admin.id, 'Admin', 'NEWS_DELETED', 'news', id, `Deleted news article: "${title}".`);
+            
+            res.status(200).json({ success: true, message: 'News deleted' });
+        });
     });
 };
 

@@ -4,7 +4,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     // Load all modules
     fetchReports();
-    fetchDashboardStats();
+    initChartsWithData();
     
     // Use the NEW loadContentManagement for Tabs
     loadContentManagement();

@@ -144,6 +144,7 @@ function populateTable(data) {
                             e.target.classList.add("opacity-60", "cursor-not-allowed");
                         }
                         allReports.find(r => r.trackingId === trackingId).status = newStatus;
+                        if (typeof refreshAuditLog === 'function') refreshAuditLog();
                     } else {
                         alert('Failed: ' + result.message);
                         e.target.value = oldValue;
@@ -242,7 +243,7 @@ if (dateRangeFilter) dateRangeFilter.addEventListener("change", applyFilters);
 
 
 // =======================
-// DOWNLOAD MENU
+// DOWNLOAD MENU 
 // =======================
 const downloadMenuBtn = document.getElementById('downloadMenuBtn');
 const downloadMenu = document.getElementById('downloadMenu');
@@ -263,39 +264,185 @@ function getFormattedDate() {
     return getLocalISOString(new Date());
 }
 
-window.downloadCSV = function() {
+// =======================
+// EXCEL DOWNLOAD (ExcelJS)
+// =======================
+window.downloadExcel = async function () {
     const dateStr = getFormattedDate();
-    let csv = `Submitted Reports as of ${dateStr}\n\nTracking ID,Name,Category,Description,Address,Date,Status,Priority\n`;
-    filteredReports.forEach(r => {
-        const desc = `"${r.description.replace(/"/g, '""')}"`;
-        const addr = `"${r.address.replace(/"/g, '""')}"`;
-        csv += `${r.trackingId},${r.name || 'Anonymous'},${r.category},${desc},${addr},${r.date},${r.status},${r.priority}\n`;
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Reports");
+
+    // =======================
+    // COLUMN SETUP
+    // =======================
+    sheet.columns = [
+        { header: "Tracking ID", width: 20 },
+        { header: "Name", width: 20 },
+        { header: "Category", width: 15 },
+        { header: "Description", width: 35 },
+        { header: "Address", width: 35 },
+        { header: "Date", width: 18 },
+        { header: "Status", width: 15 },
+        { header: "Priority", width: 15 }
+    ];
+
+    // =======================
+    // HEADER (MATCH PDF)
+    // =======================
+    sheet.mergeCells("A1:H1");
+    sheet.mergeCells("A2:H2");
+    sheet.mergeCells("A3:H3");
+
+    sheet.getCell("A1").value = "E-Sumbong kay Kap! Barangay Pulong Buhangin";
+    sheet.getCell("A2").value = "Record of Submitted Reports";
+    sheet.getCell("A3").value = `Date: ${dateStr}`;
+
+    sheet.getCell("A1").font = { bold: true, size: 16, color: { argb: "FF15803D" } };
+    sheet.getCell("A2").font = { italic: true, size: 13, color: { argb: "FF64748B" } };
+    sheet.getCell("A3").font = { size: 11, color: { argb: "FF94A3B8" } };
+
+    ["A1", "A2", "A3"].forEach(cell => {
+        sheet.getCell(cell).alignment = { horizontal: "center", vertical: "middle" };
     });
+
+    sheet.addRow([]); // spacing
+
+    // =======================
+    // TABLE HEADER
+    // =======================
+    const headerRow = sheet.addRow([
+        "Tracking ID",
+        "Name",
+        "Category",
+        "Description",
+        "Address",
+        "Date",
+        "Status",
+        "Priority"
+    ]);
+
+    headerRow.eachCell(cell => {
+        cell.font = { bold: true, color: { argb: "FF15803D" } };
+        cell.fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFDCFCE7" }
+        };
+        cell.alignment = { horizontal: "center" };
+        cell.border = {
+            top: { style: "thin" },
+            left: { style: "thin" },
+            bottom: { style: "thin" },
+            right: { style: "thin" }
+        };
+    });
+
+    // =======================
+    // DATA ROWS
+    // =======================
+    filteredReports.forEach(r => {
+        const row = sheet.addRow([
+            r.trackingId,
+            r.name || "Anonymous",
+            r.category,
+            r.description,
+            r.address,
+            r.date,
+            r.status,
+            r.priority
+        ]);
+
+        row.eachCell(cell => {
+            cell.border = {
+                top: { style: "thin" },
+                left: { style: "thin" },
+                bottom: { style: "thin" },
+                right: { style: "thin" }
+            };
+            cell.alignment = { vertical: "top", wrapText: true };
+        });
+    });
+
+    // =======================
+    // DOWNLOAD
+    // =======================
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    });
+
     const link = document.createElement("a");
-    link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-    link.download = `Reports_${dateStr}.csv`;
+    link.href = URL.createObjectURL(blob);
+    link.download = `Reports_${dateStr}.xlsx`;
     link.click();
-}
+};
 
-window.downloadExcel = function() {
-    const dateStr = getFormattedDate();
-    const wb = XLSX.utils.book_new();
-    const wsData = [["Reports as of " + dateStr], [], ["Tracking ID", "Name", "Category", "Description", "Address", "Date", "Status", "Priority"]];
-    filteredReports.forEach(r => wsData.push([r.trackingId, r.name || 'Anonymous', r.category, r.description, r.address, r.date, r.status, r.priority]));
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    XLSX.utils.book_append_sheet(wb, ws, "Reports");
-    XLSX.writeFile(wb, `Reports_${dateStr}.xlsx`);
-}
 
+// PDF Download 
 window.downloadPDF = function() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: 'landscape' });
     const dateStr = getFormattedDate();
-    
-    if (typeof logoBase64 !== 'undefined') doc.addImage(logoBase64, 'PNG', 14, 12, 24, 24);
-    doc.text("Submitted Reports", 42, 20);
-    
-    const body = filteredReports.map(r => [r.trackingId, r.name || 'Anonymous', r.category, r.description, r.address, r.date, r.status, r.priority]);
-    doc.autoTable({ head: [["ID", "Name", "Category", "Description", "Address", "Date", "Status", "Priority"]], body: body, startY: 40 });
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // Logo
+    if (typeof logoBase64 !== 'undefined')
+        doc.addImage(logoBase64, 'PNG', 14, 10, 24, 24);
+
+    const textStartX = 45;
+
+    // Main Title
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(21, 128, 61); 
+    doc.text("E-Sumbong kay Kap! Barangay Pulong Buhangin", pageWidth / 2, 20, { align: "center" });
+
+    // Subtitle 
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "italic");
+    doc.setTextColor(100, 116, 139); 
+    doc.text("Record of Submitted Reports", pageWidth / 2, 28, { align: "center" });
+
+    // Date 
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(148, 163, 184); 
+    doc.text(`Date: ${dateStr}`, pageWidth / 2, 34, { align: "center" });
+
+    // Table 
+    const body = filteredReports.map(r => [
+        r.trackingId,
+        r.name || 'Anonymous',
+        r.category,
+        r.description,
+        r.address,
+        r.date,
+        r.status,
+        r.priority
+    ]);
+
+    doc.autoTable({
+        head: [["ID", "Name", "Category", "Description", "Address", "Date", "Status", "Priority"]],
+        body: body,
+        startY: 40,
+        didParseCell: function(data) {
+            if (data.section === 'head') {
+                data.cell.styles.fillColor = [220, 252, 231]; 
+                data.cell.styles.textColor = [21, 128, 61];   
+                data.cell.styles.fontStyle = 'bold';
+            }
+        },
+            columnStyles: {
+            0: { cellWidth: 35 },   // Tracking ID
+            1: { cellWidth: 35 },   // Name
+            2: { cellWidth: 25 },   // Category
+            3: { cellWidth: 45 },   // Description
+            4: { cellWidth: 45 },   // Address
+            5: { cellWidth: 32 },   // Date
+            6: { cellWidth: 25 },   // Status
+            7: { cellWidth: 25 },   // Priority
+        }
+    });
+
     doc.save(`Reports_${dateStr}.pdf`);
 }
