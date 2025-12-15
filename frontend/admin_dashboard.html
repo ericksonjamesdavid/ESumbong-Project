@@ -7,18 +7,17 @@
   <title>Admin Dashboard</title>
 
   <link rel="icon" type="image/png" href="Images/Logo.png">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
   <style>
-    /* Active Tab Style */
+    /* Tab Styles */
     .active-tab {
       background-color: white !important;
       color: #166534 !important;
-      /* green-800 */
       border-bottom-color: #166534 !important;
     }
   </style>
@@ -26,10 +25,8 @@
 
 <body class="flex flex-col min-h-screen bg-gray-100">
 
-  <!-- Header Starts -->
   <header class="fixed top-0 w-full bg-green-900 text-white shadow-md py-4 px-6 flex items-center justify-between z-50">
     <div class="flex items-center gap-4">
-      <!-- Sidebar Toggle Icon -->
       <button id="sidebarToggle" class="text-white focus:outline-none hover:text-green-200">
         <i class="fa-solid fa-bars text-2xl transition-all duration-300" title="Menu"></i>
       </button>
@@ -38,95 +35,12 @@
       <h1 class="text-2xl md:text-3xl font-bold">Admin Dashboard</h1>
     </div>
   </header>
-  <!-- Header Ends -->
 
+  <div id="sidebar-placeholder"></div>
 
-  <!-- Sidebar Starts -->
-  <aside id="sidebar"
-    class="fixed top-0 left-0 h-full w-56 bg-green-800 text-white shadow-2xl transform -translate-x-full transition-transform duration-300 z-50 flex flex-col justify-between rounded-r-2xl">
-
-    <!-- Hide Side Bar -->
-    <button id="hideSidebar" class="absolute top-4 right-4 text-white shadow-2xl hover:text-green-300">
-      <i class="fa-solid fa-arrow-left text-xl"></i>
-    </button>
-
-    <!-- Menu -->
-    <nav class="flex flex-col items-center text-green-300 space-y-3 pt-24">
-      <h2 class="text-xl font-bold mb-4 text-gray-100 tracking-wide border-b border-green-700 pb-2 w-4/5 text-center">
-        Menu
-      </h2>
-
-      <button id="btnAnnouncements" onclick="showSection('sectionAnnouncements')" class="w-4/5 flex items-center justify-left gap-2 px-4 py-2 rounded-lg 
-              hover:bg-green-700 hover:scale-105 transform transition duration-200 focus:outline-none
-              disabled:bg-green-800 disabled:cursor-not-allowed disabled:opacity-70
-              disabled:hover:bg-green-800 disabled:hover:scale-100
-              disabled:border-none disabled:shadow-none disabled:text-green-500">
-        <i class="fa-solid fa-bullhorn"></i>
-        <span>Announcements</span>
-      </button>
-
-      <button id="btnCharts" onclick="showSection('sectionCharts')" class="w-4/5 flex items-center justify-left gap-2 px-4 py-2 rounded-lg 
-              hover:bg-green-700 hover:scale-105 transform transition duration-200 focus:outline-none
-              disabled:bg-green-800 disabled:cursor-not-allowed disabled:opacity-70
-              disabled:hover:bg-green-800 disabled:hover:scale-100
-              disabled:border-none disabled:shadow-none disabled:text-green-500">
-        <i class="fa-solid fa-chart-column"></i>
-        <span>Charts</span>
-      </button>
-
-      <button id="btnReports" onclick="showSection('sectionReports')" class="w-4/5 flex items-center justify-left gap-2 px-4 py-2 rounded-lg 
-              hover:bg-green-700 hover:scale-105 transform transition duration-200 focus:outline-none
-              disabled:bg-green-800 disabled:cursor-not-allowed disabled:opacity-70
-              disabled:hover:bg-green-800 disabled:hover:scale-100
-              disabled:border-none disabled:shadow-none disabled:text-green-500">
-        <i class="fa-solid fa-file-lines"></i>
-        <span>Reports</span>
-      </button>
-
-      <button id="btnAuditLog" onclick="showSection('sectionAuditLog')" class="w-4/5 flex items-center justify-left gap-2 px-4 py-2 rounded-lg 
-              hover:bg-green-700 hover:scale-105 transform transition duration-200 focus:outline-none
-              disabled:bg-green-800 disabled:cursor-not-allowed disabled:opacity-70
-              disabled:hover:bg-green-800 disabled:hover:scale-100
-              disabled:border-none disabled:shadow-none disabled:text-green-500">
-        <i class="fa-solid fa-clipboard-list"></i>
-        <span>Audit Log</span>
-      </button>
-
-      <button id="btnSuggestions" onclick="showSection('sectionSuggestions')" class="w-4/5 flex items-center justify-left gap-2 px-4 py-2 rounded-lg 
-              hover:bg-green-700 hover:scale-105 transform transition duration-200 focus:outline-none
-              disabled:bg-green-800 disabled:cursor-not-allowed disabled:opacity-70
-              disabled:hover:bg-green-800 disabled:hover:scale-100
-              disabled:border-none disabled:shadow-none disabled:text-green-500">
-        <i class="fa-solid fa-lightbulb"></i>
-        <span>Suggestions</span>
-      </button>
-
-    </nav>
-
-    <!-- Account Settings -->
-    <div class="p-4 flex flex-col items-center space-y-3 pb-8">
-      <a href="admin_settings.html"
-        class="w-4/5 flex items-center text-green-300 gap-2 py-2 rounded-lg hover:bg-green-700 hover:scale-105 transform transition duration-200">
-        <i class="fa-solid fa-gear"></i>
-        <span>Account Settings</span>
-      </a>
-
-      <a href="admin_signin.html"
-        class="w-4/5 flex items-center justify-center gap-2 text-center bg-white text-green-900 font-semibold py-2 rounded-lg hover:bg-green-200 transition-all duration-200 hover:scale-105">
-        <i class="fa-solid fa-right-from-bracket"></i>
-        <span>Logout</span>
-      </a>
-    </div>
-  </aside>
-  <!-- Sidebar Ends -->
-
-
-  <!-- Main Content -->
   <main class="p-6 w-full space-y-6 mt-24">
 
-    <!-- Welcome Section -->
-    <div
-      class="bg-white outline outline-1 outline-gray-300 shadow-lg shadow-inner rounded-xl p-6 flex flex-col md:flex-row items-center md:justify-between gap-4">
+    <div class="bg-white outline outline-1 outline-gray-300 shadow-lg shadow-inner rounded-xl p-6 flex flex-col md:flex-row items-center md:justify-between gap-4">
       <div>
         <h2 class="text-xl font-semibold text-green-900 mb-2">Welcome, Admin!</h2>
         <p class="text-gray-700">Manage reports, announcements, and track submitted issues efficiently.</p>
@@ -136,518 +50,37 @@
       </div>
     </div>
 
-    <!-- Announcements Section -->
-    <section id="sectionAnnouncements">
-      <section class="bg-green-50 py-16 px-6">
-        <div class="max-w-7xl mx-auto">
-
-          <h2
-            class="text-4xl md:text-5xl font-extrabold text-center mb-10 text-green-900 tracking-tight drop-shadow-sm">
-            Barangay Announcements & News
-          </h2>
-
-          <div
-            class="bg-white rounded-xl shadow-md border border-gray-200 mb-12 overflow-hidden h-[850px] flex flex-col">
-            <div class="flex border-b border-gray-200 bg-gray-50">
-              <button id="tabAnnouncements"
-                class="flex-1 py-4 text-center font-bold text-gray-600 hover:text-green-800 hover:bg-white transition border-b-2 border-transparent focus:outline-none active-tab">
-                <i class="fas fa-bullhorn mr-2"></i> Announcements
-              </button>
-              <button id="tabNews"
-                class="flex-1 py-4 text-center font-bold text-gray-600 hover:text-emerald-800 hover:bg-white transition border-b-2 border-transparent focus:outline-none">
-                <i class="fas fa-newspaper mr-2"></i> News Articles
-              </button>
-            </div>
-
-            <div class="p-6 flex-grow overflow-y-scroll">
-              <div id="panelAnnouncements" class="block">
-                <div class="flex justify-between items-center mb-6">
-                  <h3 class="text-xl font-bold text-green-900">Manage Announcements</h3>
-                  <button id="addAnnouncementBtn"
-                    class="bg-green-900 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition flex items-center gap-2 shadow-sm">
-                    <i class="fas fa-plus"></i> Post Announcement
-                  </button>
-                </div>
-                <div id="announcementList" class="grid grid-cols-1 gap-4">
-                </div>
-              </div>
-
-              <div id="panelNews" class="hidden">
-                <div class="flex justify-between items-center mb-6">
-                  <h3 class="text-xl font-bold text-emerald-900">Manage News</h3>
-                  <button id="addNewsBtn"
-                    class="bg-green-900 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition flex items-center gap-2 shadow-sm">
-                    <i class="fas fa-plus"></i> Post News
-                  </button>
-                </div>
-                <div id="newsList" class="grid grid-cols-1 gap-4">
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </section>
-    </section>
-
-    <!-- Chart Section -->
-    <section id="sectionCharts" class="w-full">
-      <section class="bg-white w-full mb-24 mt-10 shadow-md p-8 md:p-12">
-
-        <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-8 text-center tracking-tight">
-          Reports Overview
-        </h1>
-
-        <div class="flex flex-col md:flex-row gap-4 mb-10 justify-center items-center bg-gray-50 p-4 rounded-lg border border-gray-200">
-          <div class="flex items-center gap-2">
-            <i class="fas fa-calendar-alt text-green-700"></i>
-            <label for="filterYear" class="font-bold text-gray-700">Year:</label>
-            <select id="filterYear" class="border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
-              <option value="all">All</option>
-              <option value="2025">2025</option>
-              <option value="2024">2024</option>
-              <option value="2023">2023</option>
-            </select>
-          </div>
-
-          <div class="hidden md:block w-px h-6 bg-gray-300"></div>
-
-          <div class="flex items-center gap-2">
-            <i class="fas fa-filter text-green-700"></i>
-            <label for="filterMonth" class="font-bold text-gray-700">Month:</label>
-            <select id="filterMonth" class="border border-gray-300 rounded px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
-              <option value="all">All</option>
-              <option value="1">January</option>
-              <option value="2">February</option>
-              <option value="3">March</option>
-              <option value="4">April</option>
-              <option value="5">May</option>
-              <option value="6">June</option>
-              <option value="7">July</option>
-              <option value="8">August</option>
-              <option value="9">September</option>
-              <option value="10">October</option>
-              <option value="11">November</option>
-              <option value="12">December</option>
-            </select>
-          </div>
-
-          <button id="clearFiltersBtn" class="px-4 py-1.5 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded transition text-sm flex items-center gap-2">
-            <i class="fas fa-undo text-xs"></i> Clear
-          </button>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <div class="bg-white p-6 rounded-xl border-t-4 border-red-500 shadow-sm hover:shadow-md transition text-center group">
-            <div class="bg-red-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-red-100 transition">
-              <i class="fas fa-exclamation-circle text-red-500 text-xl"></i>
-            </div>
-            <div class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Total Reported</div>
-            <div class="text-4xl font-extrabold text-gray-800" id="reportedTotal">0</div>
-          </div>
-          
-          <div class="bg-white p-6 rounded-xl border-t-4 border-green-500 shadow-sm hover:shadow-md transition text-center group">
-            <div class="bg-green-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-green-100 transition">
-              <i class="fas fa-check-circle text-green-500 text-xl"></i>
-            </div>
-            <div class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Total Solved</div>
-            <div class="text-4xl font-extrabold text-gray-800" id="solvedTotal">0</div>
-          </div>
-
-          <div class="bg-white p-6 rounded-xl border-t-4 border-blue-500 shadow-sm hover:shadow-md transition text-center group">
-            <div class="bg-blue-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-100 transition">
-              <i class="fas fa-chart-line text-blue-500 text-xl"></i>
-            </div>
-            <div class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Resolution Rate</div>
-            <div class="text-4xl font-extrabold text-gray-800" id="resolvedPercent">0%</div>
-          </div>
-        </div>
-
-        <!-- No Data Message -->
-        <div id="noReportsMessage" class="hidden bg-white p-12 rounded-xl shadow-md border border-gray-100 text-center">
-          <i class="fas fa-info-circle text-gray-400 text-5xl mb-4"></i>
-          <h2 class="text-xl font-bold text-gray-800 mb-2">No Data Available</h2>
-          <p class="text-gray-600">No reports match the selected filters. Try adjusting your year or month selection.</p>
-        </div>
-
-        <!-- Charts Grid -->
-        <div id="chartsContainer" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-          <!-- Bar Chart -->
-          <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-md border border-gray-100">
-            <h2 class="text-lg font-bold text-gray-800 mb-6 flex items-center border-b pb-2">
-              <i class="fas fa-chart-bar text-green-700 mr-2"></i> Reports 
-            </h2>
-            <div class="relative w-full h-80 flex justify-center items-center">
-              <canvas id="barChart"></canvas>
-            </div>
-          </div>
-
-          <!-- Pie Chart -->
-          <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-            <h2 class="text-lg font-bold text-gray-800 mb-6 flex items-center border-b pb-2">
-              <i class="fas fa-chart-pie text-green-700 mr-2"></i> Issue Types
-            </h2>
-            <div class="relative w-full h-64 flex justify-center items-center">
-              <canvas id="pieChart"></canvas>
-            </div>
-            <ul id="legendList" class="mt-6 space-y-2 text-sm text-gray-600 pl-4 border-l-2 border-gray-100"></ul>
-          </div>
-
-        </div>
-
-      </section>
-    </section>
-
-    <!-- Report Section -->
-    <section id="sectionReports" class="hidden">
-
-      <!-- Search Input -->
-      <div class="flex flex-col md:flex-row gap-4 mb-4">
-        <input type="text" id="searchInput" placeholder="Search by name, category, status, priority, or tracking ID"
-          class="border border-gray-300 rounded-lg px-4 py-2 flex-grow focus:outline-none focus:ring-2 focus:ring-green-700 shadow-sm">
-
-        <div class="flex-grow md:flex-none">
-          <label for="dateRangeFilter" class="text-sm text-gray-600 md:hidden">Filter by Date:</label>
-          <select id="dateRangeFilter"
-            class="border border-gray-300 rounded-lg px-4 py-2 w-full md:w-auto focus:outline-none focus:ring-2 focus:ring-green-700 shadow-sm">
-            <option value="all-time">All Time</option>
-            <option value="today">Today</option>
-            <option value="past-week">Past Week</option>
-            <option value="past-month">Past Month</option>
-            <option value="past-year">Past Year</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Records Table -->
-      <div class="bg-white border border-gray-300 shadow-md rounded-xl p-6 overflow-x-auto">
-
-        <!-- Header Row -->
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-semibold text-green-900">Submitted Reports</h2>
-
-          <!-- Download Button -->
-          <div class="relative inline-block text-left">
-            <button id="downloadMenuBtn"
-              class="bg-green-900 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition flex items-center"
-              title="Download data">
-              <i class="fas fa-download mr-2"></i>Download
-            </button>
-
-            <div id="downloadMenu"
-              class="hidden absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-md z-20">
-              <button id="btnExcel" onclick="downloadExcel()"
-                class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
-                Download Excel
-              </button>
-              <button id="btnPDF" onclick="downloadPDF()"
-                class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
-                Download PDF
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Table -->
-        <table class="min-w-full table-auto border-collapse">
-          <thead>
-            <tr class="bg-green-100 text-green-900 text-center">
-              <th class="px-4 py-2 border">Tracking ID</th>
-              <th class="px-4 py-2 border">Name</th>
-              <th class="px-4 py-2 border">Barangay ID</th>
-              <th class="px-4 py-2 border">Category</th>
-              <th class="px-4 py-2 border">Description</th>
-
-              <th class="px-4 py-2 border">Address</th>
-
-              <th class="px-4 py-2 border">Upload Evidence</th>
-              <th class="px-4 py-2 border">Date Submitted</th>
-              <th class="px-4 py-2 border">Status</th>
-              <th class="px-4 py-2 border">Priority</th>
-            </tr>
-          </thead>
-
-          <tbody id="reportTableBody" class="text-gray-700">
-            <!-- JS will populate rows -->
-          </tbody>
-        </table>
-      </div>
-    </section>
-    <!-- Report Section Ends -->
-
-    </section>
-
-    <!-- Audit Log Section Starts -->
-    <section id="sectionAuditLog" class="hidden">
-
-      <div class="mb-6">
-        <h2 class="text-2xl font-semibold text-green-900">Admin Audit Log</h2>
-      </div>
-
-      <div class="flex flex-col md:flex-row gap-4 mb-4">
-
-        <input type="text" id="auditLogSearchInput" placeholder="Search by user, action, or description"
-          class="border border-gray-300 rounded-lg px-4 py-2 flex-grow focus:outline-none focus:ring-2 focus:ring-green-700 shadow-sm">
-
-        <div class="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-
-          <select id="auditDateFilter"
-            class="border border-gray-300 rounded-lg px-4 py-2 w-full md:w-auto focus:outline-none focus:ring-2 focus:ring-green-700 shadow-sm cursor-pointer">
-            <option value="all-time">All Time</option>
-            <option value="today">Today</option>
-            <option value="past-week">Past Week</option>
-            <option value="past-month">Past Month</option>
-            <option value="past-year">Past Year</option>
-          </select>
-
-          <div class="relative inline-block text-left w-full md:w-auto">
-            <button id="auditDownloadBtn"
-              class="bg-green-900 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition w-full md:w-auto flex items-center justify-center"
-              title="Download log">
-              <i class="fas fa-download mr-2"></i>Download
-            </button>
-
-            <div id="auditDownloadMenu"
-              class="hidden absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-md z-20">
-              <button onclick="downloadAuditExcel()" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
-                Download Excel
-              </button>
-              <button onclick="downloadAuditPDF()" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
-                Download PDF
-              </button>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <div class="bg-white border border-gray-300 shadow-md rounded-xl p-6 overflow-x-auto">
-        <table class="min-w-full table-auto border-collapse">
-          <thead>
-            <tr class="bg-green-100 text-green-900 text-center">
-              <th class="px-4 py-2 border">Timestamp</th>
-              <th class="px-4 py-2 border">User</th>
-              <th class="px-4 py-2 border">Action Type</th>
-              <th class="px-4 py-2 border">Description</th>
-            </tr>
-          </thead>
-          <tbody id="auditLogTableBody" class="text-gray-700 text-sm">
-          </tbody>
-        </table>
-      </div>
-    </section>
-    <!-- Audit Log Section Ends -->
-
-    </section>
-    <section id="sectionSuggestions" class="hidden">
-
-      <div class="mb-4">
-        <h2 class="text-2xl font-semibold text-green-900">Suggestions Mailbox</h2>
-      </div>
-
-      <div class="bg-white border border-gray-300 shadow-md rounded-xl overflow-hidden grid grid-cols-1 md:grid-cols-3"
-        style="min-height: 600px;">
-
-        <div class="md:col-span-1 border-r border-gray-200 bg-gray-50">
-
-          <div class="p-4 border-b border-gray-200">
-            <h3 class="text-lg font-semibold text-green-800">Inbox</h3>
-          </div>
-
-          <div id="suggestion-list" class="h-[550px] overflow-y-auto">
-          </div>
-        </div>
-
-        <div class="md:col-span-2 p-6">
-
-          <div id="suggestion-placeholder" class="text-center text-gray-500 pt-20">
-            <i class="fas fa-inbox text-4xl mb-4"></i>
-            <h3 class="text-xl">Select a suggestion to read</h3>
-            <p>Messages will be displayed here.</p>
-          </div>
-
-          <div id="suggestion-content" class="hidden">
-            <div class="border-b border-gray-200 pb-4 mb-4">
-              <div class="flex justify-between items-center">
-                <div>
-                  <p class="text-sm text-gray-600">Suggestion ID: <span id="suggestion-id"
-                      class="font-semibold text-green-800"></span></p>
-                </div>
-                <p class="text-sm text-gray-600">Date: <span id="suggestion-date" class="font-semibold"></span></p>
-              </div>
-            </div>
-
-            <div class="prose max-w-none">
-              <p id="suggestion-body" class="text-gray-700 leading-relaxed whitespace-pre-wrap"></p>
-            </div>
-
-            <div class="mt-6 border-t border-gray-200 pt-4">
-              <button id="delete-suggestion-btn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
-                <i class="fas fa-trash-alt mr-2"></i>Delete
-              </button>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </section>
+    <section id="sectionAnnouncements"></section> <section id="sectionCharts" class="hidden"></section>
+    <section id="sectionReports" class="hidden"></section>
+    <section id="sectionAuditLog" class="hidden"></section>
+    <section id="sectionSuggestions" class="hidden"></section>
 
   </main>
 
-  <div id="addressModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
-    <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-2xl">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-semibold text-green-900">Report Location</h2>
-        <button id="closeAddressModal" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
-      </div>
+  <div id="modals-placeholder"></div>
 
-      <p id="modalAddressText" class="text-gray-700 mb-4 text-lg"></p>
-
-      <div id="modalMap" style="height: 400px; width: 100%;" class="rounded-lg shadow-md relative z-0"></div>
-    </div>
-  </div>
-
-  <div id="descriptionModal"
-    class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
-    <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-lg">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-semibold text-green-900">Report Description</h2>
-        <button id="closeDescriptionModal" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
-      </div>
-
-      <p id="modalDescriptionText" class="text-gray-700 text-base leading-relaxed whitespace-pre-wrap"></p>
-    </div>
-  </div>
-
-  <!-- New Announcement Form -->
-  <div id="announcementModal" class="fixed inset-0 z-50 hidden">
-    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"></div>
-
-    <div class="relative flex items-center justify-center min-h-screen p-4">
-      <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl transform transition-all scale-100 p-8">
-
-        <div class="flex justify-between items-center mb-6">
-          <h3 id="annModalTitle" class="text-2xl font-bold text-green-900">New Announcement</h3>
-          <button id="closeAnnModal" class="text-gray-400 hover:text-gray-600 transition">
-            <i class="fas fa-times text-xl"></i>
-          </button>
-        </div>
-
-        <div class="space-y-5">
-          <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Title</label>
-            <input id="announcementTitle" type="text" placeholder="e.g., Community Clean-up"
-              class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition outline-none text-gray-800 font-medium">
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Description</label>
-            <textarea id="announcementDescription" rows="5" placeholder="Enter the full details here..."
-              class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition outline-none text-gray-800 resize-none"></textarea>
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-3 mt-8 pt-4 border-t border-gray-100">
-          <button id="cancelAnnouncementBtn"
-            class="px-5 py-2.5 rounded-lg text-gray-600 hover:bg-gray-100 font-medium transition">
-            Cancel
-          </button>
-          <button id="uploadAnnouncementBtn"
-            class="px-6 py-2.5 rounded-lg bg-green-900 text-white font-medium hover:bg-green-800 shadow-md hover:shadow-lg transition">
-            Publish Post
-          </button>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <!-- New News Form -->
-  <div id="newsModal" class="fixed inset-0 z-50 hidden">
-    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"></div>
-
-    <div class="relative flex items-center justify-center min-h-screen p-4">
-      <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl transform transition-all scale-100 p-8">
-
-        <div class="flex justify-between items-center mb-6">
-          <h3 id="newsModalTitle" class="text-2xl font-bold text-emerald-800">New News Article</h3>
-          <button id="closeNewsModal" class="text-gray-400 hover:text-gray-600 transition">
-            <i class="fas fa-times text-xl"></i>
-          </button>
-        </div>
-
-        <div class="space-y-4">
-          <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Headline</label>
-            <input id="newsTitle" type="text" placeholder="e.g., DepEd declares wellness break"
-              class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition outline-none">
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Summary</label>
-            <textarea id="newsDescription" rows="3" placeholder="Short summary of the news..."
-              class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition outline-none resize-none"></textarea>
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Image
-                URL</label>
-              <input id="newsImage" type="text" placeholder="https://..."
-                class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition outline-none">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Source
-                Link</label>
-              <input id="newsLink" type="text" placeholder="https://..."
-                class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition outline-none">
-            </div>
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-3 mt-8 pt-4 border-t border-gray-100">
-          <button id="cancelNewsBtn"
-            class="px-5 py-2.5 rounded-lg text-gray-600 hover:bg-gray-100 font-medium transition">
-            Cancel
-          </button>
-          <button id="uploadNewsBtn"
-            class="px-6 py-2.5 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 shadow-md hover:shadow-lg transition">
-            Publish News
-          </button>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <!-- Footer -->
   <footer class="bg-green-900 text-white text-center py-6 mt-auto">
     <p>&copy; 2025 Barangay Reporting System. All rights reserved.</p>
   </footer>
 
-  <!-- External JS Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
 
-
-  <!-- External JS File -->
   <script src="js/auth.js"></script>
   <script src="js/logo_data.js"></script>
 
   <script src="js/admin_modules/globals.js"></script>
-<script src="js/admin_modules/sidebar.js"></script>
-<script src="js/admin_modules/charts.js"></script>
-<script src="js/admin_modules/content.js"></script>
-<script src="js/admin_modules/reports.js"></script>
-<script src="js/admin_modules/suggestions.js"></script>
-<script src="js/admin_modules/audit.js"></script>
+  <script src="js/admin_modules/sidebar.js"></script>
+  <script src="js/admin_modules/charts.js"></script>
+  <script src="js/admin_modules/content.js"></script>
+  <script src="js/admin_modules/reports.js"></script>
+  <script src="js/admin_modules/suggestions.js"></script>
+  <script src="js/admin_modules/audit.js"></script>
 
-<script src="js/admin_dashboard.js"></script>
+  <script src="js/admin_loader.js"></script>
 
 </body>
-
 </html>

@@ -1,0 +1,73 @@
+<aside id="sidebar"
+  class="fixed top-0 left-0 h-full w-56 bg-green-800 text-white shadow-2xl transform -translate-x-full transition-transform duration-300 z-50 flex flex-col justify-between rounded-r-2xl">
+
+  <button id="hideSidebar" class="absolute top-4 right-4 text-white shadow-2xl hover:text-green-300">
+    <i class="fa-solid fa-arrow-left text-xl"></i>
+  </button>
+
+  <nav class="flex flex-col items-center text-green-300 space-y-3 pt-24">
+    <h2 class="text-xl font-bold mb-4 text-gray-100 tracking-wide border-b border-green-700 pb-2 w-4/5 text-center">
+      Menu
+    </h2>
+
+    <button id="btnAnnouncements" onclick="showSection('sectionAnnouncements')" class="w-4/5 flex items-center justify-left gap-2 px-4 py-2 rounded-lg 
+            hover:bg-green-700 hover:scale-105 transform transition duration-200 focus:outline-none
+            disabled:bg-green-800 disabled:cursor-not-allowed disabled:opacity-70
+            disabled:hover:bg-green-800 disabled:hover:scale-100
+            disabled:border-none disabled:shadow-none disabled:text-green-500">
+      <i class="fa-solid fa-bullhorn"></i>
+      <span>Announcements</span>
+    </button>
+
+    <button id="btnCharts" onclick="showSection('sectionCharts')" class="w-4/5 flex items-center justify-left gap-2 px-4 py-2 rounded-lg 
+            hover:bg-green-700 hover:scale-105 transform transition duration-200 focus:outline-none
+            disabled:bg-green-800 disabled:cursor-not-allowed disabled:opacity-70
+            disabled:hover:bg-green-800 disabled:hover:scale-100
+            disabled:border-none disabled:shadow-none disabled:text-green-500">
+      <i class="fa-solid fa-chart-column"></i>
+      <span>Charts</span>
+    </button>
+
+    <button id="btnReports" onclick="showSection('sectionReports')" class="w-4/5 flex items-center justify-left gap-2 px-4 py-2 rounded-lg 
+            hover:bg-green-700 hover:scale-105 transform transition duration-200 focus:outline-none
+            disabled:bg-green-800 disabled:cursor-not-allowed disabled:opacity-70
+            disabled:hover:bg-green-800 disabled:hover:scale-100
+            disabled:border-none disabled:shadow-none disabled:text-green-500">
+      <i class="fa-solid fa-file-lines"></i>
+      <span>Reports</span>
+    </button>
+
+    <button id="btnAuditLog" onclick="showSection('sectionAuditLog')" class="w-4/5 flex items-center justify-left gap-2 px-4 py-2 rounded-lg 
+            hover:bg-green-700 hover:scale-105 transform transition duration-200 focus:outline-none
+            disabled:bg-green-800 disabled:cursor-not-allowed disabled:opacity-70
+            disabled:hover:bg-green-800 disabled:hover:scale-100
+            disabled:border-none disabled:shadow-none disabled:text-green-500">
+      <i class="fa-solid fa-clipboard-list"></i>
+      <span>Audit Log</span>
+    </button>
+
+    <button id="btnSuggestions" onclick="showSection('sectionSuggestions')" class="w-4/5 flex items-center justify-left gap-2 px-4 py-2 rounded-lg 
+            hover:bg-green-700 hover:scale-105 transform transition duration-200 focus:outline-none
+            disabled:bg-green-800 disabled:cursor-not-allowed disabled:opacity-70
+            disabled:hover:bg-green-800 disabled:hover:scale-100
+            disabled:border-none disabled:shadow-none disabled:text-green-500">
+      <i class="fa-solid fa-lightbulb"></i>
+      <span>Suggestions</span>
+    </button>
+
+  </nav>
+
+  <div class="p-4 flex flex-col items-center space-y-3 pb-8">
+    <a href="admin_settings.html"
+      class="w-4/5 flex items-center text-green-300 gap-2 py-2 rounded-lg hover:bg-green-700 hover:scale-105 transform transition duration-200">
+      <i class="fa-solid fa-gear"></i>
+      <span>Account Settings</span>
+    </a>
+
+    <a href="admin_signin.html" id="logoutBtn"
+      class="w-4/5 flex items-center justify-center gap-2 text-center bg-white text-green-900 font-semibold py-2 rounded-lg hover:bg-green-200 transition-all duration-200 hover:scale-105">
+      <i class="fa-solid fa-right-from-bracket"></i>
+      <span>Logout</span>
+    </a>
+  </div>
+</aside>

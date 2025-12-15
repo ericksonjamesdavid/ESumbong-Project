@@ -1,0 +1,49 @@
+<section class="bg-green-50 py-16 px-6">
+  <div class="max-w-7xl mx-auto">
+
+    <h2 class="text-4xl md:text-5xl font-extrabold text-center mb-10 text-green-900 tracking-tight drop-shadow-sm">
+      Barangay Announcements & News
+    </h2>
+
+    <div class="bg-white rounded-xl shadow-md border border-gray-200 mb-12 overflow-hidden h-[850px] flex flex-col">
+      <div class="flex border-b border-gray-200 bg-gray-50">
+        <button id="tabAnnouncements"
+          class="flex-1 py-4 text-center font-bold text-gray-600 hover:text-green-800 hover:bg-white transition border-b-2 border-transparent focus:outline-none active-tab">
+          <i class="fas fa-bullhorn mr-2"></i> Announcements
+        </button>
+        <button id="tabNews"
+          class="flex-1 py-4 text-center font-bold text-gray-600 hover:text-emerald-800 hover:bg-white transition border-b-2 border-transparent focus:outline-none">
+          <i class="fas fa-newspaper mr-2"></i> News Articles
+        </button>
+      </div>
+
+      <div class="p-6 flex-grow overflow-y-scroll">
+        
+        <div id="panelAnnouncements" class="block">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-green-900">Manage Announcements</h3>
+            <button id="addAnnouncementBtn"
+              class="bg-green-900 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition flex items-center gap-2 shadow-sm">
+              <i class="fas fa-plus"></i> Post Announcement
+            </button>
+          </div>
+          <div id="announcementList" class="grid grid-cols-1 gap-4">
+            </div>
+        </div>
+
+        <div id="panelNews" class="hidden">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-emerald-900">Manage News</h3>
+            <button id="addNewsBtn"
+              class="bg-green-900 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition flex items-center gap-2 shadow-sm">
+              <i class="fas fa-plus"></i> Post News
+            </button>
+          </div>
+          <div id="newsList" class="grid grid-cols-1 gap-4">
+            </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>

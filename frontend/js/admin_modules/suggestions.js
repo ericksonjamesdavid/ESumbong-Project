@@ -1,20 +1,13 @@
 // =======================
 // SUGGESTIONS LOGIC
 // =======================
-const suggestionListEl = document.getElementById('suggestion-list');
-const placeholderEl = document.getElementById('suggestion-placeholder');
-const contentEl = document.getElementById('suggestion-content');
-const idEl = document.getElementById('suggestion-id');
-const dateEl = document.getElementById('suggestion-date');
-const bodyEl = document.getElementById('suggestion-body');
-const deleteBtn = document.getElementById('delete-suggestion-btn');
-
-// Only initialize if elements exist (for refactored dashboard)
-if (!suggestionListEl || !placeholderEl || !contentEl) {
-    console.warn('Suggestions module: Required DOM elements not found. Will initialize when elements are available.');
-}
 
 async function fetchSuggestions() {
+    const suggestionListEl = document.getElementById('suggestion-list');
+    if (!suggestionListEl) {
+        console.warn('Suggestions: suggestion-list element not found');
+        return;
+    }
     try {
         const response = await fetch('/api/suggestions');
         const data = await response.json();
@@ -27,6 +20,7 @@ async function fetchSuggestions() {
 }
 
 function renderSuggestionList() {
+    const suggestionListEl = document.getElementById('suggestion-list');
     if (!suggestionListEl) return;
     suggestionListEl.innerHTML = '';
     if (allSuggestions.length === 0) {
@@ -49,15 +43,21 @@ function renderSuggestionList() {
 }
 
 function showSuggestionContent(id) {
+    const placeholderEl = document.getElementById('suggestion-placeholder');
+    const contentEl = document.getElementById('suggestion-content');
+    const idEl = document.getElementById('suggestion-id');
+    const dateEl = document.getElementById('suggestion-date');
+    const bodyEl = document.getElementById('suggestion-body');
+    
     if (!id) {
         if (placeholderEl) placeholderEl.classList.remove('hidden');
         if (contentEl) contentEl.classList.add('hidden');
-        currentSuggestionId = null;
+        window.currentSuggestionId = null;
         return;
     }
     const suggestion = allSuggestions.find(s => s.id === id);
     if (!suggestion) return;
-    currentSuggestionId = id;
+    window.currentSuggestionId = id;
     if (idEl) idEl.textContent = suggestion.suggestionId;
     if (dateEl) dateEl.textContent = suggestion.date;
     if (bodyEl) bodyEl.textContent = suggestion.suggestionText;
@@ -80,23 +80,22 @@ async function markAsRead(id) {
     if (typeof refreshAuditLog === 'function') refreshAuditLog();
 }
 
-// Only attach event listener if element exists
-if (deleteBtn) {
-    deleteBtn.addEventListener('click', async () => {
-        if (currentSuggestionId && confirm('Delete this suggestion?')) {
-            const response = await fetchWithAuth(`/api/suggestions/${currentSuggestionId}`, { method: 'DELETE' });
-            if (response) { // Only reload if token is still valid
-                fetchSuggestions();
-                if (typeof refreshAuditLog === 'function') refreshAuditLog();
+// Initialize Suggestions section
+function initSuggestions() {
+    const deleteBtn = document.getElementById('delete-suggestion-btn');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', async () => {
+            if (window.currentSuggestionId && confirm('Delete this suggestion?')) {
+                const response = await fetchWithAuth(`/api/suggestions/${window.currentSuggestionId}`, { method: 'DELETE' });
+                if (response) { // Only reload if token is still valid
+                    await fetchSuggestions();
+                    if (typeof refreshAuditLog === 'function') refreshAuditLog();
+                }
             }
-        }
-    });
+        });
+    }
 }
 
-// Initialize suggestions when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    // Re-query elements in case they were added dynamically
-    if (document.getElementById('suggestion-list')) {
-        fetchSuggestions();
-    }
-});
+// Expose to window for admin_loader.js
+window.fetchSuggestions = fetchSuggestions;
+window.initSuggestions = initSuggestions;

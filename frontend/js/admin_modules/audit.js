@@ -1,13 +1,13 @@
 // =======================
 // AUDIT LOG LOGIC
 // =======================
-const auditLogTableBody = document.getElementById('auditLogTableBody');
-const auditLogSearchInput = document.getElementById('auditLogSearchInput');
-const auditDateFilter = document.getElementById('auditDateFilter');
-const auditDownloadBtn = document.getElementById('auditDownloadBtn');
-const auditDownloadMenu = document.getElementById('auditDownloadMenu');
 
 async function fetchAuditLogs() {
+    const auditLogTableBody = document.getElementById('auditLogTableBody');
+    if (!auditLogTableBody) {
+        console.warn('Audit: auditLogTableBody element not found');
+        return;
+    }
     try {
         const response = await fetchWithAuth('/api/audit-logs');
         const data = await response.json();
@@ -24,6 +24,8 @@ async function fetchAuditLogs() {
 }
 
 function populateAuditLog(data) {
+    const auditLogTableBody = document.getElementById('auditLogTableBody');
+    const auditDownloadBtn = document.getElementById('auditDownloadBtn');
     if (!auditLogTableBody) return;
     auditLogTableBody.innerHTML = "";
     if (data.length === 0) {
@@ -58,6 +60,10 @@ function populateAuditLog(data) {
 }
 
 function applyAuditFilters() {
+    const auditLogSearchInput = document.getElementById('auditLogSearchInput');
+    const auditDateFilter = document.getElementById('auditDateFilter');
+    if (!auditLogSearchInput || !auditDateFilter) return;
+    
     const term = auditLogSearchInput.value.toLowerCase();
     const filterValue = auditDateFilter.value;
     let filtered = auditLogData;
@@ -103,8 +109,39 @@ function applyAuditFilters() {
     populateAuditLog(filteredAuditLogs);
 }
 
-if (auditLogSearchInput) auditLogSearchInput.addEventListener("input", applyAuditFilters);
-if (auditDateFilter) auditDateFilter.addEventListener("change", applyAuditFilters);
+// Initialize Audit section
+function initAudit() {
+    const auditLogSearchInput = document.getElementById('auditLogSearchInput');
+    const auditDateFilter = document.getElementById('auditDateFilter');
+    const auditDownloadBtn = document.getElementById('auditDownloadBtn');
+    const auditDownloadMenu = document.getElementById('auditDownloadMenu');
+
+    if (auditLogSearchInput) auditLogSearchInput.addEventListener("input", applyAuditFilters);
+    if (auditDateFilter) auditDateFilter.addEventListener("change", applyAuditFilters);
+
+    // Download menu
+    if (auditDownloadBtn) {
+        auditDownloadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            auditDownloadMenu.classList.toggle('hidden');
+        });
+        document.addEventListener('click', (e) => {
+            if (!auditDownloadBtn.contains(e.target) && !auditDownloadMenu.contains(e.target)) {
+                auditDownloadMenu.classList.add('hidden');
+            }
+        });
+    }
+}
+
+// Expose to window for admin_loader.js
+window.fetchAuditLogs = fetchAuditLogs;
+window.initAudit = initAudit;
+window.refreshAuditLog = refreshAuditLog;
+
+// Function to refresh audit log (called after actions)
+async function refreshAuditLog() {
+    await fetchAuditLogs();
+}
 
 // =======================
 // DOWNLOAD EXCEL 
@@ -226,21 +263,6 @@ function downloadAuditPDF() {
 
     doc.save(`Audit_Logs_${dateStr}.pdf`);
 }
-
-// =======================
-// DOWNLOAD MENU TOGGLE
-// =======================
-if (auditDownloadBtn) {
-    auditDownloadBtn.addEventListener("click", () => {
-        auditDownloadMenu.classList.toggle("hidden");
-    });
-}
-
-// =======================
-// EVENT LISTENERS
-// =======================
-if (auditLogSearchInput) auditLogSearchInput.addEventListener("input", applyAuditFilters);
-if (auditDateFilter) auditDateFilter.addEventListener("change", applyAuditFilters);
 
 // =======================
 // INIT

@@ -201,10 +201,3 @@ async function initChartsWithData() {
 		console.error('Error loading charts:', error);
 	}
 }
-
-// Initialize on page load
-if (document.readyState === 'loading') {
-	document.addEventListener('DOMContentLoaded', initChartsWithData);
-} else {
-	initChartsWithData();
-}

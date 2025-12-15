@@ -1,0 +1,63 @@
+<div class="flex flex-col md:flex-row gap-4 mb-4">
+    <input type="text" id="searchInput" placeholder="Search by name, category, status, priority, or tracking ID"
+      class="border border-gray-300 rounded-lg px-4 py-2 flex-grow focus:outline-none focus:ring-2 focus:ring-green-700 shadow-sm">
+
+    <div class="flex-grow md:flex-none">
+      <label for="dateRangeFilter" class="text-sm text-gray-600 md:hidden">Filter by Date:</label>
+      <select id="dateRangeFilter"
+        class="border border-gray-300 rounded-lg px-4 py-2 w-full md:w-auto focus:outline-none focus:ring-2 focus:ring-green-700 shadow-sm">
+        <option value="all-time">All Time</option>
+        <option value="today">Today</option>
+        <option value="past-week">Past Week</option>
+        <option value="past-month">Past Month</option>
+        <option value="past-year">Past Year</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="bg-white border border-gray-300 shadow-md rounded-xl p-6 overflow-x-auto">
+
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-semibold text-green-900">Submitted Reports</h2>
+
+      <div class="relative inline-block text-left">
+        <button id="downloadMenuBtn"
+          class="bg-green-900 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition flex items-center"
+          title="Download data">
+          <i class="fas fa-download mr-2"></i>Download
+        </button>
+
+        <div id="downloadMenu"
+          class="hidden absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-md z-20">
+          <button id="btnExcel" onclick="downloadExcel()"
+            class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
+            Download Excel
+          </button>
+          <button id="btnPDF" onclick="downloadPDF()"
+            class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
+            Download PDF
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <table class="min-w-full table-auto border-collapse">
+      <thead>
+        <tr class="bg-green-100 text-green-900 text-center">
+          <th class="px-4 py-2 border">Tracking ID</th>
+          <th class="px-4 py-2 border">Name</th>
+          <th class="px-4 py-2 border">Barangay ID</th>
+          <th class="px-4 py-2 border">Category</th>
+          <th class="px-4 py-2 border">Description</th>
+          <th class="px-4 py-2 border">Address</th>
+          <th class="px-4 py-2 border">Upload Evidence</th>
+          <th class="px-4 py-2 border">Date Submitted</th>
+          <th class="px-4 py-2 border">Status</th>
+          <th class="px-4 py-2 border">Priority</th>
+        </tr>
+      </thead>
+
+      <tbody id="reportTableBody" class="text-gray-700">
+        </tbody>
+    </table>
+  </div>

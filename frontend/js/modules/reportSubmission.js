@@ -22,6 +22,10 @@ export const initReportSubmission = () => {
         }
 
         const formData = new FormData(reportForm);
+
+        formData.delete('barangayIdFile'); 
+        formData.delete('evidenceFiles');
+
         formData.append('trackingId', trackingId);
 
         if (barangayIdFiles.length > 0) {
