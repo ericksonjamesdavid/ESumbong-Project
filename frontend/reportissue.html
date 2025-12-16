@@ -114,7 +114,10 @@
       <div>
         <label>Description<span class="text-red-600">*</span></label>
         <textarea id="description" required class="w-full border rounded px-3 py-2"
-          placeholder="Describe the issue..."></textarea>
+          placeholder="Describe the issue..." maxlength="2000"></textarea>
+        <div class="text-right text-sm text-gray-500 mt-1">
+          <span id="descriptionCounter">0</span>/2000 characters
+        </div>
       </div>
 
       <!-- Upload Evidence -->
@@ -255,6 +258,25 @@
 
   <!-- Footer Starts -->
   <div id="footer-placeholder"></div>
+
+  <!-- Character Counter Script -->
+  <script>
+    // Description character counter
+    const descriptionTextarea = document.getElementById('description');
+    const descriptionCounter = document.getElementById('descriptionCounter');
+    
+    if (descriptionTextarea && descriptionCounter) {
+      descriptionTextarea.addEventListener('input', function() {
+        const count = this.value.length;
+        descriptionCounter.textContent = count;
+        if (count > 2000) {
+          descriptionCounter.classList.add('text-red-500');
+        } else {
+          descriptionCounter.classList.remove('text-red-500');
+        }
+      });
+    }
+  </script>
 
   <!-- External JS -->
   <script type="module" src="js/script.js"></script>

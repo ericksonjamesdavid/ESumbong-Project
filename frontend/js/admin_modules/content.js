@@ -2,6 +2,9 @@
 // CONTENT MANAGEMENT (Announcements & News)
 // =======================
 
+// Helper: Shorthand for document.getElementById
+const getEl = (id) => document.getElementById(id);
+
 async function loadContentManagement() {
     try {
         const [newsRes, annRes] = await Promise.all([
@@ -11,81 +14,62 @@ async function loadContentManagement() {
         const newsData = await newsRes.json();
         const annData = await annRes.json();
 
-        const announcementList = document.getElementById('announcementList');
-        const newsList = document.getElementById('newsList');
-        
-        if (annData.success && announcementList) renderAnnouncementList(annData.announcements);
-        if (newsData.success && newsList) renderNewsList(newsData.news);
+        if (annData.success) renderAnnouncementList(annData.announcements);
+        if (newsData.success) renderNewsList(newsData.news);
 
-    } catch (error) {
-        console.error('Error loading content:', error);
-    }
+        initCounters(); 
+
+    } catch (error) { console.error('Error loading content:', error); }
 }
 
-// --- Render Announcements (List View) ---
-function renderAnnouncementList(items) {
-    const announcementList = document.getElementById('announcementList');
-    if (!announcementList) return;
-    announcementList.innerHTML = '';
-
+// --- Generic Render Helper ---
+function renderList(items, containerId, emptyMsg, createCardFn) {
+    const container = getEl(containerId);
+    if (!container) return;
+    container.innerHTML = '';
     if (items.length === 0) {
-        announcementList.innerHTML = '<p class="text-center text-gray-500 py-10">No announcements yet.</p>';
+        container.innerHTML = `<p class="text-center text-gray-500 py-10">${emptyMsg}</p>`;
         return;
     }
+    items.forEach(item => container.appendChild(createCardFn(item)));
+}
 
-    items.forEach(item => {
+// --- Render Announcements ---
+function renderAnnouncementList(items) {
+    renderList(items, 'announcementList', 'No announcements yet.', (item) => {
         const el = document.createElement('div');
-        el.className = "bg-white p-4 rounded-lg border border-gray-200 hover:shadow-md transition"; 
-
+        el.className = "bg-white p-4 rounded-lg border border-gray-200 hover:shadow-md transition";
         el.innerHTML = `
-        <div class="flex justify-between items-start mb-1"> 
-            <h4 class="font-bold text-green-900 text-lg">${item.title}</h4>
-            
-            <div class="flex gap-2 ml-4 flex-shrink-0">
-                <button class="edit-ann bg-gray-100 hover:bg-green-100 text-green-700 px-3 py-1 rounded transition text-sm font-medium">Edit</button>
-                <button class="delete-ann bg-gray-100 hover:bg-red-100 text-red-600 px-3 py-1 rounded transition text-sm font-medium">Delete</button>
+            <div class="flex justify-between items-start mb-1"> 
+                <h4 class="font-bold text-green-900 text-lg">${item.title}</h4>
+                <div class="flex gap-2 ml-4 flex-shrink-0">
+                    <button class="edit-btn bg-gray-100 hover:bg-green-100 text-green-700 px-3 py-1 rounded transition text-sm font-medium">Edit</button>
+                    <button class="delete-btn bg-gray-100 hover:bg-red-100 text-red-600 px-3 py-1 rounded transition text-sm font-medium">Delete</button>
+                </div>
             </div>
-        </div>
-        
-        <p class="text-xs text-gray-400 mb-1">${item.date}</p>
-        <p class="text-sm text-gray-600 line-clamp-2">${item.description}</p>
-    `;
+            <p class="text-xs text-gray-400 mb-1">${item.date}</p>
+            <p class="text-sm text-gray-600 line-clamp-2">${item.description}</p>
+        `;
 
-        el.querySelector('.edit-ann').addEventListener('click', () => {
-            const announcementTitle = document.getElementById('announcementTitle');
-            const announcementDescription = document.getElementById('announcementDescription');
-            const annModalTitle = document.getElementById('annModalTitle');
-            const uploadAnnouncementBtn = document.getElementById('uploadAnnouncementBtn');
-            const announcementModal = document.getElementById('announcementModal');
-            
-            window.editingAnnCardId = item.id;
-            announcementTitle.value = item.title;
-            announcementDescription.value = item.description;
-            if (announcementModal) announcementModal.classList.remove('hidden');
-            annModalTitle.textContent = "Edit Announcement";
-            uploadAnnouncementBtn.textContent = "Save Changes";
+        // Edit Action
+        el.querySelector('.edit-btn').addEventListener('click', () => {
+            openModal('announcementModal', 'Edit Announcement', item.id);
+            getEl('announcementTitle').value = item.title;
+            getEl('announcementDescription').value = item.description;
+            forceUpdateCounters(['announcementTitle', 'announcementDescription']);
         });
 
-        el.querySelector('.delete-ann').addEventListener('click', () => deleteItem(item.id, 'announcement'));
-        announcementList.appendChild(el);
+        // Delete Action
+        el.querySelector('.delete-btn').addEventListener('click', () => deleteItem(item.id, 'announcements'));
+        return el;
     });
 }
 
-// --- Render News (List View with Anchors) ---
+// --- Render News ---
 function renderNewsList(items) {
-    const newsList = document.getElementById('newsList');
-    if (!newsList) return;
-    newsList.innerHTML = '';
-
-    if (items.length === 0) {
-        newsList.innerHTML = '<p class="text-center text-gray-500 py-10">No news articles yet.</p>';
-        return;
-    }
-
-    items.forEach(item => {
+    renderList(items, 'newsList', 'No news articles yet.', (item) => {
         const el = document.createElement('div');
         el.className = "bg-white p-4 rounded-lg border border-gray-200 flex gap-4 hover:shadow-md transition";
-        
         el.innerHTML = `
             <img src="${item.imageUrl}" class="w-20 h-20 object-cover rounded-md bg-gray-100 flex-shrink-0">
             <div class="flex-grow">
@@ -93,202 +77,178 @@ function renderNewsList(items) {
                     <div>
                         <h4 class="font-bold text-emerald-900 text-lg leading-tight">
                             <a href="${item.linkUrl || '#'}" target="_blank" class="hover:underline hover:text-emerald-700 transition flex items-center gap-2">
-                                ${item.title}
-                                ${item.linkUrl ? '<i class="fas fa-external-link-alt text-xs text-gray-400"></i>' : ''}
+                                ${item.title} ${item.linkUrl ? '<i class="fas fa-external-link-alt text-xs text-gray-400"></i>' : ''}
                             </a>
                         </h4>
                         <p class="text-xs text-gray-400 mb-1 mt-1">${item.date}</p>
                     </div>
                     <div class="flex gap-2 ml-2 flex-shrink-0">
-                        <button class="edit-news bg-gray-100 hover:bg-emerald-100 text-emerald-700 px-3 py-1 rounded transition text-sm font-medium">Edit</button>
-                        <button class="delete-news bg-gray-100 hover:bg-red-100 text-red-600 px-3 py-1 rounded transition text-sm font-medium">Delete</button>
+                        <button class="edit-btn bg-gray-100 hover:bg-emerald-100 text-emerald-700 px-3 py-1 rounded transition text-sm font-medium">Edit</button>
+                        <button class="delete-btn bg-gray-100 hover:bg-red-100 text-red-600 px-3 py-1 rounded transition text-sm font-medium">Delete</button>
                     </div>
                 </div>
                 <p class="text-sm text-gray-600 line-clamp-2 mt-1">${item.description}</p>
             </div>
         `;
 
-        el.querySelector('.edit-news').addEventListener('click', () => {
-            const newsTitle = document.getElementById('newsTitle');
-            const newsDescription = document.getElementById('newsDescription');
-            const newsImage = document.getElementById('newsImage');
-            const newsLink = document.getElementById('newsLink');
-            const newsModalTitle = document.getElementById('newsModalTitle');
-            const uploadNewsBtn = document.getElementById('uploadNewsBtn');
-            const newsModal = document.getElementById('newsModal');
-            
-            window.editingNewsId = item.id;
-            newsTitle.value = item.title;
-            newsDescription.value = item.description;
-            newsImage.value = item.imageUrl;
-            newsLink.value = item.linkUrl;
-            if (newsModal) newsModal.classList.remove('hidden');
-            newsModalTitle.textContent = "Edit News Article";
-            uploadNewsBtn.textContent = "Save Changes";
+        el.querySelector('.edit-btn').addEventListener('click', () => {
+            openModal('newsModal', 'Edit News Article', item.id);
+            getEl('newsTitle').value = item.title;
+            getEl('newsDescription').value = item.description;
+            getEl('newsImage').value = item.imageUrl;
+            getEl('newsLink').value = item.linkUrl;
+            forceUpdateCounters(['newsTitle', 'newsDescription']);
         });
 
-        el.querySelector('.delete-news').addEventListener('click', () => deleteItem(item.id, 'news'));
-        newsList.appendChild(el);
+        el.querySelector('.delete-btn').addEventListener('click', () => deleteItem(item.id, 'news'));
+        return el;
     });
 }
 
-// --- Shared Delete Function ---
-async function deleteItem(id, type) {
-    const endpoint = type === 'news' ? `/api/news/${id}` : `/api/announcements/${id}`;
-    if (confirm(`Delete this ${type}? This cannot be undone.`)) {
-        try {
-            const response = await fetchWithAuth(endpoint, { method: 'DELETE' });
-            if (!response) return; // Token expired
-            const result = await response.json();
-            if (result.success) {
-                await loadContentManagement();
-                if (typeof refreshAuditLog === 'function') refreshAuditLog();
-            } else {
-                alert('Error: ' + result.message);
-            }
-        } catch (err) {
-            alert('Network error.');
-        }
+// --- Modal & Form Logic ---
+function initContentManagement() {
+    // Tab Switching
+    const toggleTab = (showAnn) => {
+        getEl('tabAnnouncements').classList.toggle('active-tab', showAnn);
+        getEl('tabNews').classList.toggle('active-tab', !showAnn);
+        getEl('panelAnnouncements').classList.toggle('hidden', !showAnn);
+        getEl('panelNews').classList.toggle('hidden', showAnn);
+    };
+    if(getEl('tabAnnouncements')) {
+        getEl('tabAnnouncements').onclick = () => toggleTab(true);
+        getEl('tabNews').onclick = () => toggleTab(false);
     }
+
+    // Setup Modals (Announcements)
+    setupModalListeners('announcementModal', 'addAnnouncementBtn', () => {
+        openModal('announcementModal', 'New Announcement');
+        getEl('announcementTitle').value = '';
+        getEl('announcementDescription').value = '';
+        forceUpdateCounters(['announcementTitle', 'announcementDescription']);
+    });
+
+    getEl('uploadAnnouncementBtn')?.addEventListener('click', () => {
+        const title = getEl('announcementTitle').value.trim();
+        const description = getEl('announcementDescription').value.trim();
+        if (!title || !description) return alert('Enter title and description.');
+        handleDataSubmit('announcements', { title, description }, 'announcementModal');
+    });
+
+    // Setup Modals (News)
+    setupModalListeners('newsModal', 'addNewsBtn', () => {
+        openModal('newsModal', 'New News Article');
+        getEl('newsTitle').value = '';
+        getEl('newsDescription').value = '';
+        getEl('newsImage').value = '';
+        getEl('newsLink').value = '';
+        forceUpdateCounters(['newsTitle', 'newsDescription']);
+    });
+
+    getEl('uploadNewsBtn')?.addEventListener('click', () => {
+        const title = getEl('newsTitle').value.trim();
+        const description = getEl('newsDescription').value.trim();
+        const image = getEl('newsImage').value.trim();
+        const link = getEl('newsLink').value.trim();
+        if (!title || !description || !image) return alert('Fill required fields.');
+        handleDataSubmit('news', { title, description, image, link }, 'newsModal');
+    });
+
+    initCounters();
 }
 
-// Initialize Content Management after components load
-function initContentManagement() {
-    // Tab Logic
-    const tabAnn = document.getElementById('tabAnnouncements');
-    const tabNews = document.getElementById('tabNews');
-    const panelAnn = document.getElementById('panelAnnouncements');
-    const panelNews = document.getElementById('panelNews');
+// --- Shared Helpers ---
 
-    if (tabAnn && tabNews) {
-        tabAnn.addEventListener('click', () => {
-            tabAnn.classList.add('active-tab');
-            tabNews.classList.remove('active-tab');
-            panelAnn.classList.remove('hidden');
-            panelNews.classList.add('hidden');
+function setupModalListeners(modalId, addBtnId, onAddClick) {
+    const modal = getEl(modalId);
+    if (!modal) return;
+    
+    // Open
+    getEl(addBtnId)?.addEventListener('click', onAddClick);
+    
+    // Close (Buttons & Backdrop)
+    const close = () => modal.classList.add('hidden');
+    modal.querySelector('.fa-times')?.parentNode.addEventListener('click', close);
+    modal.querySelectorAll('button')[0].addEventListener('click', close); 
+}
+
+function openModal(modalId, title, editId = null) {
+    const modal = getEl(modalId);
+    modal.classList.remove('hidden');
+    // Find the title element (h3) and submit button
+    modal.querySelector('h3').textContent = title;
+    const btn = modal.querySelectorAll('button')[1];
+    btn.textContent = editId ? "Save Changes" : "Publish";
+    
+    // Store ID globally for submit handler
+    window[modalId + 'EditId'] = editId; 
+}
+
+async function handleDataSubmit(type, body, modalId) {
+    const editId = window[modalId + 'EditId'];
+    const method = editId ? 'PATCH' : 'POST';
+    const url = editId ? `/api/${type}/${editId}` : `/api/${type}`;
+
+    try {
+        const res = await fetchWithAuth(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
         });
-        tabNews.addEventListener('click', () => {
-            tabNews.classList.add('active-tab');
-            tabAnn.classList.remove('active-tab');
-            panelNews.classList.remove('hidden');
-            panelAnn.classList.add('hidden');
-        });
-    }
+        if (!res) return;
+        const result = await res.json();
+        
+        if (result.success) {
+            getEl(modalId).classList.add('hidden');
+            await loadContentManagement();
+            if (window.refreshAuditLog) refreshAuditLog();
+        } else {
+            alert('Error: ' + result.message);
+        }
+    } catch (e) { alert('Network error'); }
+}
 
-    // Form Elements
-    const addAnnouncementBtn = document.getElementById('addAnnouncementBtn');
-    const announcementModal = document.getElementById('announcementModal');
-    const closeAnnModal = document.getElementById('closeAnnModal');
-    const uploadAnnouncementBtn = document.getElementById('uploadAnnouncementBtn');
-    const cancelAnnouncementBtn = document.getElementById('cancelAnnouncementBtn');
-    const announcementTitle = document.getElementById('announcementTitle');
-    const announcementDescription = document.getElementById('announcementDescription');
-    const annModalTitle = document.getElementById('annModalTitle');
+async function deleteItem(id, type) {
+    if (!confirm(`Delete this item?`)) return;
+    try {
+        const res = await fetchWithAuth(`/api/${type}/${id}`, { method: 'DELETE' });
+        if (res && (await res.json()).success) {
+            await loadContentManagement();
+            if (window.refreshAuditLog) refreshAuditLog();
+        }
+    } catch (e) { alert('Network error'); }
+}
 
-    const addNewsBtn = document.getElementById('addNewsBtn');
-    const newsModal = document.getElementById('newsModal');
-    const closeNewsModal = document.getElementById('closeNewsModal');
-    const uploadNewsBtn = document.getElementById('uploadNewsBtn');
-    const cancelNewsBtn = document.getElementById('cancelNewsBtn');
-    const newsTitle = document.getElementById('newsTitle');
-    const newsDescription = document.getElementById('newsDescription');
-    const newsLink = document.getElementById('newsLink');
-    const newsImage = document.getElementById('newsImage');
-    const newsModalTitle = document.getElementById('newsModalTitle');
+// --- Counter Logic ---
 
-    // Modal Handlers
-    const toggleAnnModal = (show) => {
-        if (announcementModal) announcementModal.classList.toggle('hidden', !show);
+function initCounters() {
+    setupCounter('announcementTitle', 'announcementTitleCounter', 40);
+    setupCounter('announcementDescription', 'announcementCounter', 200);
+    setupCounter('newsTitle', 'newsTitleCounter', 100);
+    setupCounter('newsDescription', 'newsCounter', 400);
+}
+
+function setupCounter(inputId, counterId, limit) {
+    const input = getEl(inputId);
+    const counter = getEl(counterId);
+    if (!input || !counter) return;
+
+    // Attach function to element for easy re-use
+    input.updateCount = () => {
+        const count = input.value.length;
+        counter.textContent = count;
+        counter.classList.toggle('text-red-500', count > limit);
     };
-    const toggleNewsModal = (show) => {
-        if (newsModal) newsModal.classList.toggle('hidden', !show);
-    };
+    input.addEventListener('input', input.updateCount);
+}
 
-    // Announcement Buttons
-    if (addAnnouncementBtn) {
-        addAnnouncementBtn.addEventListener('click', () => {
-            toggleAnnModal(true);
-            annModalTitle.textContent = "New Announcement";
-            uploadAnnouncementBtn.textContent = "Publish Post";
-            announcementTitle.value = '';
-            announcementDescription.value = '';
-            window.editingAnnCardId = null;
-        });
-    }
-    if (cancelAnnouncementBtn) cancelAnnouncementBtn.addEventListener('click', () => toggleAnnModal(false));
-    if (closeAnnModal) closeAnnModal.addEventListener('click', () => toggleAnnModal(false));
-
-    if (uploadAnnouncementBtn) {
-        uploadAnnouncementBtn.addEventListener('click', async () => {
-            const title = announcementTitle.value.trim();
-            const description = announcementDescription.value.trim();
-            if (!title || !description) return alert('Please enter both title and description.');
-
-            const method = window.editingAnnCardId ? 'PATCH' : 'POST';
-            const url = window.editingAnnCardId ? `/api/announcements/${window.editingAnnCardId}` : '/api/announcements';
-
-            try {
-                const response = await fetchWithAuth(url, {
-                    method: method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title, description })
-                });
-                if (!response) return; // Token expired
-                const result = await response.json();
-                if (result.success) {
-                    toggleAnnModal(false);
-                    await loadContentManagement();
-                    if (typeof refreshAuditLog === 'function') refreshAuditLog();
-                } else {
-                    alert('Error: ' + result.message);
-                }
-            } catch (e) { alert('Network error'); }
-        });
-    }
-
-    // News Buttons
-    if (addNewsBtn) {
-        addNewsBtn.addEventListener('click', () => {
-            toggleNewsModal(true);
-            newsModalTitle.textContent = "New News Article";
-            uploadNewsBtn.textContent = "Publish News";
-            newsTitle.value = '';
-            newsDescription.value = '';
-            newsImage.value = '';
-            newsLink.value = '';
-            window.editingNewsId = null;
-        });
-    }
-    if (cancelNewsBtn) cancelNewsBtn.addEventListener('click', () => toggleNewsModal(false));
-    if (closeNewsModal) closeNewsModal.addEventListener('click', () => toggleNewsModal(false));
-
-    if (uploadNewsBtn) {
-        uploadNewsBtn.addEventListener('click', async () => {
-            const title = newsTitle.value.trim();
-            const description = newsDescription.value.trim();
-            const image = newsImage.value.trim();
-            const link = newsLink.value.trim();
-            if (!title || !description || !image) return alert('Please fill required fields.');
-
-            const method = window.editingNewsId ? 'PATCH' : 'POST';
-            const url = window.editingNewsId ? `/api/news/${window.editingNewsId}` : '/api/news';
-
-            try {
-                const response = await fetchWithAuth(url, {
-                    method: method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title, description, imageUrl: image, linkUrl: link })
-                });
-                if (!response) return; // Token expired
-                const result = await response.json();
-                if (result.success) {
-                    toggleNewsModal(false);
-                    await loadContentManagement();
-                    if (typeof refreshAuditLog === 'function') refreshAuditLog();
-                } else {
-                    alert('Error: ' + result.message);
-                }
-            } catch (e) { alert('Network error'); }
-        });
-    }
+function forceUpdateCounters(ids) {
+    ids.forEach(id => {
+        const el = getEl(id);
+        if (el && el.updateCount) el.updateCount();
+        else {
+            // Fallback if event listener isn't ready yet
+            const counter = getEl(id.replace('Description', 'Counter').replace('Title', 'TitleCounter')); 
+            if(counter) counter.textContent = el.value.length;
+        }
+    });
 }

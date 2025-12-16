@@ -26,7 +26,7 @@ export const initAnnouncementsAndNews = async () => {
             if (data.success && Array.isArray(data.news)) {
                 renderNews(data.news, newsCarousel);
                 // Initialize carousel controls after rendering
-                initializeCarouselControls();
+                initCarouselSliding();
             }
         } catch (error) {
             console.error('Error fetching news:', error);
@@ -76,34 +76,50 @@ function renderNews(newsArticles, carousel) {
     });
 }
 
-function initializeCarouselControls() {
-    const carousel = document.getElementById('newsCarousel');
+function initCarouselSliding() {
+    const track = document.getElementById('newsCarousel');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
-
-    if (!carousel || !prevBtn || !nextBtn) return;
+    
+    // Safety check
+    if (!track || !prevBtn || !nextBtn || track.children.length === 0) return;
 
     let currentIndex = 0;
-    const totalSlides = carousel.querySelectorAll('a').length;
-    const slidesPerView = window.innerWidth < 768 ? 1 : 3;
+    
+    // Determine how many cards are visible at once (Mobile: 1, Desktop: 3)
+    const getItemsPerView = () => window.innerWidth < 768 ? 1 : 3;
+    
+    const updateCarousel = () => {
+        const itemWidth = track.children[0].getBoundingClientRect().width;
+        track.style.transform = `translateX(-${currentIndex * itemWidth}px)`;
+    };
 
-    function updateCarousel() {
-        const translateX = -currentIndex * (100 / slidesPerView);
-        carousel.style.transform = `translateX(${translateX}%)`;
-    }
-
-    prevBtn.addEventListener('click', () => {
-        currentIndex = Math.max(0, currentIndex - 1);
-        updateCarousel();
-    });
-
+    // NEXT Button
     nextBtn.addEventListener('click', () => {
-        const maxIndex = Math.max(0, totalSlides - slidesPerView);
-        currentIndex = Math.min(currentIndex + 1, maxIndex);
+        const itemsPerView = getItemsPerView();
+        // Stop scrolling when we reach the last group of items
+        const maxIndex = track.children.length - itemsPerView;
+        
+        if (currentIndex < maxIndex) {
+            currentIndex++;
+        } else {
+            currentIndex = 0; // Loop back to start
+        }
         updateCarousel();
     });
 
-    // Handle window resize
+    // PREV Button
+    prevBtn.addEventListener('click', () => {
+        if (currentIndex > 0) {
+            currentIndex--;
+        } else {
+            // Loop to end
+            const itemsPerView = getItemsPerView();
+            currentIndex = Math.max(0, track.children.length - itemsPerView);
+        }
+        updateCarousel();
+    });
+
     window.addEventListener('resize', () => {
         currentIndex = 0;
         updateCarousel();

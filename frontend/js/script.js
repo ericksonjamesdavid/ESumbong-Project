@@ -15,7 +15,19 @@ import { initReportSubmission, initLightboxClose } from './modules/reportSubmiss
 // INITIALIZATION
 // ============================================================
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    // Load charts component dynamically
+    const chartsPlaceholder = document.getElementById('chartsPlaceholder');
+    if (chartsPlaceholder) {
+        try {
+            const res = await fetch('admin_components/sections/charts.html');
+            const html = await res.text();
+            chartsPlaceholder.innerHTML = html;
+        } catch (err) {
+            console.error('Error loading charts component:', err);
+        }
+    }
+
     // Animations
     initAnimationObserver();
     initHomePageSetup();
