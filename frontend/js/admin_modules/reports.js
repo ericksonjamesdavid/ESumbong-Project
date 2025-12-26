@@ -312,22 +312,108 @@ function setupDownloadMenu() {
 }
 
 window.downloadExcel = async function () {
+    if (!filteredReports.length) {
+        alert("No reports to download.");
+        return;
+    }
+
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet("Reports");
     
-    // Headers
-    ws.getCell("A1").value = "Record of Submitted Reports";
-    ws.getCell("A1").font = { bold: true, size: 16, color: { argb: "FF15803D" } };
-    ws.addRow(["ID", "Name", "Category", "Description", "Address", "Date", "Status", "Priority"]);
+    const dateStr = new Date().toLocaleString();
     
-    // Data
-    filteredReports.forEach(r => ws.addRow([r.trackingId, r.name||"Anon", r.category, r.description, r.address, r.date, r.status, r.priority]));
+    // --- Header rows ---
+    ws.mergeCells('A1:H1');
+    ws.getCell('A1').value = "Barangay Report Management System";
+    ws.getCell('A1').alignment = { horizontal: 'center', vertical: 'center' };
+    ws.getCell('A1').font = { bold: true, size: 16, color: { argb: 'FFFFFFFF' } };
+    ws.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF15803D' } };
+    ws.getRow(1).height = 25;
     
+    ws.mergeCells('A2:H2');
+    ws.getCell('A2').value = "Record of Submitted Reports";
+    ws.getCell('A2').alignment = { horizontal: 'center' };
+    ws.getCell('A2').font = { italic: true, size: 13, color: { argb: 'FF64748B' } };
+    
+    ws.mergeCells('A3:H3');
+    ws.getCell('A3').value = `Date: ${dateStr}`;
+    ws.getCell('A3').alignment = { horizontal: 'center' };
+    ws.getCell('A3').font = { size: 11, color: { argb: 'FF94A3B8' } };
+    
+    ws.addRow([]); // Spacing
+    
+    // --- Column headers ---
+    const headerRow = ws.addRow(["Tracking ID", "Name", "Category", "Description", "Address", "Date", "Status", "Priority"]);
+    headerRow.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 11 };
+    headerRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF059669" } };
+    headerRow.alignment = { horizontal: "center", vertical: "center" };
+    headerRow.height = 25;
+
+    headerRow.eachCell((cell) => {
+        cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+        };
+    });
+    
+    // --- Data rows ---
+    filteredReports.forEach((r, idx) => {
+        const row = ws.addRow([r.trackingId, r.name || "Anonymous", r.category, r.description, r.address, r.date, r.status, r.priority]);
+        row.alignment = { horizontal: "left", vertical: "center", wrapText: true };
+        row.height = 20;
+
+        row.eachCell((cell) => {
+            // Apply Borders
+            cell.border = {
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' }
+            };
+
+            // Apply Alternating Row Colors
+            if (idx % 2 === 0) {
+                cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF3F4F6" } };
+            }
+        });
+        
+        // Color-code status (column 7)
+        const statusCell = row.getCell(7);
+        if (r.status === "Resolved") {
+            statusCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFD1FAE5" } };
+            statusCell.font = { color: { argb: "FF059669" }, bold: true };
+        } else if (r.status === "In Progress") {
+            statusCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFEF3C7" } };
+            statusCell.font = { color: { argb: "FFA16207" }, bold: true };
+        } else {
+            statusCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFE0E0" } };
+            statusCell.font = { color: { argb: "FF991B1B" }, bold: true };
+        }
+    });
+    
+    // --- Column widths ---
+    ws.columns = [
+        { width: 18 },
+        { width: 15 },
+        { width: 12 },
+        { width: 70 },
+        { width: 100 },
+        { width: 12 },
+        { width: 12 },
+        { width: 12 }
+    ];
+    
+    // --- Download ---
     const buf = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.href = URL.createObjectURL(new Blob([buf]));
-    link.download = `Reports_${new Date().toISOString().split('T')[0]}.xlsx`;
+    link.href = url;
+    link.download = `Reports_${dateStr.split(',')[0].replace(/\//g, '-')}.xlsx`;
     link.click();
+    URL.revokeObjectURL(url);
 };
 
 window.downloadPDF = function () {

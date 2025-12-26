@@ -34,28 +34,28 @@ const handleUpdateAnnouncement = (db, req, res) => {
     });
 };
 
-// Delete Announcement Handler
-const handleDeleteAnnouncement = (db, req, res) => {
+// Archive Announcement Handler
+const handleArchiveAnnouncement = (db, req, res) => {
     const { id } = req.params;
     
-    // First, get announcement details before deleting
+    // First, get announcement details before archiving
     db.query('SELECT title FROM announcements WHERE id = ?', [id], (selectErr, selectResult) => {
         if (selectErr || !selectResult || selectResult.length === 0) {
             return res.status(404).json({ success: false, message: 'Announcement not found' });
         }
         
         const title = selectResult[0].title;
-        const sql = `CALL sp_DeleteAnnouncement(?)`;
+        const sql = `CALL sp_ArchiveAnnouncement(?)`;
         
         db.query(sql, [id], (err, result) => {
             if (err) {
-                console.error('Error deleting announcement:', err);
+                console.error('Error archiving announcement:', err);
                 return res.status(500).json({ success: false, message: 'Database error' });
             }
             
-            logAuditAction(db, req.admin.id, 'Admin', 'ANNOUNCEMENT_DELETED', 'announcements', id, `Deleted announcement: "${title}".`);
+            logAuditAction(db, req.admin.id, 'Admin', 'ANNOUNCEMENT_ARCHIVED', 'announcements', id, `Archived announcement: "${title}".`);
             
-            res.status(200).json({ success: true, message: 'Announcement deleted' });
+            res.status(200).json({ success: true, message: 'Announcement archived' });
         });
     });
 };
@@ -72,4 +72,4 @@ const handleGetAnnouncements = (db, req, res) => {
     });
 };
 
-module.exports = { handleCreateAnnouncement, handleUpdateAnnouncement, handleDeleteAnnouncement, handleGetAnnouncements };
+module.exports = { handleCreateAnnouncement, handleUpdateAnnouncement, handleArchiveAnnouncement, handleGetAnnouncements };

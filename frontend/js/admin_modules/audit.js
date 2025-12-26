@@ -189,11 +189,37 @@ async function downloadAuditExcel() {
         };
         cell.font = { bold: true, color: { argb: '15803D' } };
         cell.alignment = { horizontal: 'center' };
+        cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+        };
     });
 
     // --- Data rows ---
-    filteredAuditLogs.forEach(log => {
-        sheet.addRow([log.timestamp, log.user, log.actionType, log.description]);
+filteredAuditLogs.forEach((log, idx) => {
+        const row = sheet.addRow([log.timestamp, log.user, log.actionType, log.description]);
+        
+        // Loop through all cells to apply borders and alternating colors
+        row.eachCell((cell) => {
+            // Apply Borders
+            cell.border = {
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' }
+            };
+
+            // Apply Alternating Row Colors (Zebra Striping)
+            if (idx % 2 === 0) {
+                cell.fill = { 
+                    type: "pattern", 
+                    pattern: "solid", 
+                    fgColor: { argb: "FFF3F4F6" } 
+                };
+            }
+        });
     });
 
     // Set column widths

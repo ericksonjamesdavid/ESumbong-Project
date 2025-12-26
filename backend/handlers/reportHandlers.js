@@ -77,16 +77,27 @@ const handleUpdateReportStatus = (db, req, res) => {
     const { trackingId } = req.params;
     const { status } = req.body;
 
+    if (!trackingId || !status) {
+        return res.status(400).json({ success: false, message: 'Tracking ID and status are required' });
+    }
+
+    // Validate status value
+    const validStatuses = ['Pending', 'In Progress', 'Resolved'];
+    if (!validStatuses.includes(status)) {
+        return res.status(400).json({ success: false, message: 'Invalid status value' });
+    }
+
     const sql = `CALL sp_UpdateReportStatus(?, ?)`;
     
     db.query(sql, [trackingId, status], (err, result) => {
         if (err) {
             console.error('Error updating report status:', err);
-            return res.status(500).json({ success: false, message: 'Database error' });
+            console.error('Tracking ID:', trackingId, 'Status:', status);
+            return res.status(500).json({ success: false, message: 'Database error: ' + err.message });
         }
 
         // Log report status change to audit_logs
-        logAuditAction(db, null, 'Admin', 'REPORT_STATUS_CHANGED', 'reports', null, `Updated report ${trackingId} status to '${status}'.`);
+        logAuditAction(db, null, 'Admin', 'REPORT_STATUS_CHANGED', 'reports', trackingId, `Updated report ${trackingId} status to '${status}'.`);
 
         res.status(200).json({ success: true, message: 'Report status updated' });
     });

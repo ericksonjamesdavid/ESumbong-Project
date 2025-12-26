@@ -10,8 +10,8 @@ const { verifyJWT } = require('./middleware/auth');
 // Import handlers
 const { handleAdminLogin, handlePasswordUpdate } = require('./handlers/adminHandlers');
 const { handleReportSubmission, handleGetAllReports, handleUpdateReportStatus, handleGetReportByTrackingId } = require('./handlers/reportHandlers');
-const { handleCreateAnnouncement, handleUpdateAnnouncement, handleDeleteAnnouncement, handleGetAnnouncements } = require('./handlers/announcementHandlers');
-const { handleCreateNews, handleUpdateNews, handleDeleteNews, handleGetNews } = require('./handlers/newsHandlers');
+const { handleCreateAnnouncement, handleUpdateAnnouncement, handleArchiveAnnouncement, handleGetAnnouncements } = require('./handlers/announcementHandlers');
+const { handleCreateNews, handleUpdateNews, handleArchiveNews, handleGetNews } = require('./handlers/newsHandlers');
 const { handleSubmitSuggestion, handleGetSuggestions, handleMarkSuggestionRead, handleDeleteSuggestion } = require('./handlers/suggestionHandlers');
 const { handleGetDashboardStats, handleGetAuditLogs } = require('./handlers/dashboardHandlers');
 
@@ -150,7 +150,7 @@ app.patch('/api/announcements/:id', verifyJWT, (req, res) => {
 });
 
 app.delete('/api/announcements/:id', verifyJWT, (req, res) => {
-    handleDeleteAnnouncement(db, req, res);
+    handleArchiveAnnouncement(db, req, res);
 });
 
 app.get('/api/announcements', (req, res) => {
@@ -170,7 +170,7 @@ app.patch('/api/news/:id', verifyJWT, (req, res) => {
 });
 
 app.delete('/api/news/:id', verifyJWT, (req, res) => {
-    handleDeleteNews(db, req, res);
+    handleArchiveNews(db, req, res);
 });
 
 app.get('/api/news', (req, res) => {

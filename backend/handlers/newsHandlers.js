@@ -34,28 +34,28 @@ const handleUpdateNews = (db, req, res) => {
     });
 };
 
-// Delete News Handler
-const handleDeleteNews = (db, req, res) => {
+// Archive News Handler
+const handleArchiveNews = (db, req, res) => {
     const { id } = req.params;
     
-    // First, get news details before deleting
+    // First, get news details before archiving
     db.query('SELECT title FROM news WHERE id = ?', [id], (selectErr, selectResult) => {
         if (selectErr || !selectResult || selectResult.length === 0) {
             return res.status(404).json({ success: false, message: 'News article not found' });
         }
         
         const title = selectResult[0].title;
-        const sql = `CALL sp_DeleteNews(?)`;
+        const sql = `CALL sp_ArchiveNews(?)`;
         
         db.query(sql, [id], (err, result) => {
             if (err) {
-                console.error('Error deleting news:', err);
+                console.error('Error archiving news:', err);
                 return res.status(500).json({ success: false, message: 'Database error' });
             }
             
-            logAuditAction(db, req.admin.id, 'Admin', 'NEWS_DELETED', 'news', id, `Deleted news article: "${title}".`);
+            logAuditAction(db, req.admin.id, 'Admin', 'NEWS_ARCHIVED', 'news', id, `Archived news article: "${title}".`);
             
-            res.status(200).json({ success: true, message: 'News deleted' });
+            res.status(200).json({ success: true, message: 'News archived' });
         });
     });
 };
@@ -72,4 +72,4 @@ const handleGetNews = (db, req, res) => {
     });
 };
 
-module.exports = { handleCreateNews, handleUpdateNews, handleDeleteNews, handleGetNews };
+module.exports = { handleCreateNews, handleUpdateNews, handleArchiveNews, handleGetNews };

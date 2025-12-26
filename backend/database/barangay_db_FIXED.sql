@@ -1,4 +1,3 @@
-
 CREATE DATABASE barangay_db;
 USE barangay_db;
 --
@@ -74,7 +73,7 @@ CREATE TABLE `news` (
 
 LOCK TABLES `news` WRITE;
 
-INSERT INTO `news` VALUES (1,'Bulacan solon rejects link to Discayas in flood control probe','MANILA, Philippines — Without outright denying the claims, Rep. Salvador Pleyto (Bulacan, 6th District) rejected Ombudsman Boying Remulla’s assertion that he received “remittances” from a contractor of a substandard flood control project prior to entering Congress in 2022.','https://media.philstar.com/photos/2025/10/24/salvador-pleyto_2025-10-24_11-17-42.jpg','https://www.philstar.com/headlines/2025/10/24/2482202/bulacan-solon-rejects-link-discayas-flood-control-probe','2025-11-14 12:50:31'),(2,'DOH: No outbreak of influenza-like illnesses','MANILA – Department of Health (DOH) Secretary Teodoro Herbosa on Tuesday clarified that there is no outbreak of influenza-like illnesses (ILI) in the country, stressing that the current increase in cases is part of the usual seasonal flu trend during the colder months.','https://files01.pna.gov.ph/category-list/2023/09/04/ybl5742.jpg','https://www.pna.gov.ph/articles/1260968','2025-11-14 12:51:24'),(3,'DepEd declares \'wellness break\' for public schools Oct. 27–30','MANILA, Philippines — The Department of Education has declared a four-day “wellness break” for public schools nationwide from October 27 to 30 to allow teachers and students to rest and recover from the impact of recent disasters and the rise in flu-like illnesses.','https://media.philstar.com/photos/2023/06/06/2_2023-06-06_23-07-34.jpg','https://www.philstar.com/headlines/2025/10/23/2481956/deped-declares-wellness-break-public-schools-oct-2730','2025-11-14 12:52:36');
+INSERT INTO `news` VALUES (1,'Bulacan solon rejects link to Discayas in flood control probe','MANILA, Philippines — Without outright denying the claims, Rep. Salvador Pleyto (Bulacan, 6th District) rejected Ombudsman Boying Remulla\'s assertion that he received "remittances" from a contractor of a substandard flood control project prior to entering Congress in 2022.','https://media.philstar.com/photos/2025/10/24/salvador-pleyto_2025-10-24_11-17-42.jpg','https://www.philstar.com/headlines/2025/10/24/2482202/bulacan-solon-rejects-link-discayas-flood-control-probe','2025-11-14 12:50:31',0),(2,'DOH: No outbreak of influenza-like illnesses','MANILA – Department of Health (DOH) Secretary Teodoro Herbosa on Tuesday clarified that there is no outbreak of influenza-like illnesses (ILI) in the country, stressing that the current increase in cases is part of the usual seasonal flu trend during the colder months.','https://files01.pna.gov.ph/category-list/2023/09/04/ybl5742.jpg','https://www.pna.gov.ph/articles/1260968','2025-11-14 12:51:24',0),(3,'DepEd declares \'wellness break\' for public schools Oct. 27–30','MANILA, Philippines — The Department of Education has declared a four-day "wellness break" for public schools nationwide from October 27 to 30 to allow teachers and students to rest and recover from the impact of recent disasters and the rise in flu-like illnesses.','https://media.philstar.com/photos/2023/06/06/2_2023-06-06_23-07-34.jpg','https://www.philstar.com/headlines/2025/10/23/2481956/deped-declares-wellness-break-public-schools-oct-2730','2025-11-14 12:52:36',0);
 UNLOCK TABLES;
 
 --
@@ -260,8 +259,8 @@ BEGIN
         category,
         description,
         address,
-        latitude,   -- ADD THIS
-        longitude,  -- ADD THIS
+        latitude,
+        longitude,
         evidence_path AS areaPhoto,
         status,
         CASE 
@@ -283,7 +282,6 @@ BEGIN
         id, 
         title, 
         description, 
-        -- Format the date nicely
         DATE_FORMAT(date_posted, '%b %d, %Y') AS date
     FROM announcements
     WHERE is_archived = 0
@@ -296,13 +294,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_GetDashboardStats`()
 BEGIN
     SELECT 
         category,
-        
-        -- Count all reports, default to 0 if NULL
         COALESCE(COUNT(*), 0) AS reported,
-        
-        -- Count "Resolved" reports:
-        -- 1. COALESCE handles NULL sums
-        -- 2. LOWER() makes it case-insensitive
         COALESCE(SUM(CASE WHEN LOWER(status) = 'resolved' THEN 1 ELSE 0 END), 0) AS solved
     FROM 
         reports
@@ -340,15 +332,12 @@ BEGIN
         description,
         evidence_path AS areaPhoto,
         status,
-        
-        -- Translate priority to simple words
         CASE 
             WHEN priority = 'Low (Minor issue, not urgent)' THEN 'Low'
             WHEN priority = 'High (Urgent, immediate action required)' THEN 'High'
             WHEN priority = 'Emergency (Critical, immediate response required)' THEN 'Emergency'
             ELSE 'Other'
         END AS priority,
-        
         DATE_FORMAT(date_submitted, '%Y-%m-%d') AS date
     FROM reports
     WHERE tracking_id = p_tracking_id;
@@ -392,7 +381,6 @@ BEGIN
     DECLARE v_category_abbr VARCHAR(3);
     DECLARE v_counter INT;
     
-    -- Map category to abbreviation
     SELECT CASE 
         WHEN LOWER(p_category) = 'garbage' THEN 'GRB'
         WHEN LOWER(p_category) = 'streetlight' OR LOWER(p_category) = 'street light' THEN 'STL'
@@ -401,17 +389,14 @@ BEGIN
         ELSE 'OTH'
     END INTO v_category_abbr;
     
-    -- Get or create counter for this date and category
     INSERT INTO tracking_id_counter (date, category_abbr, counter)
     VALUES (p_date, v_category_abbr, 1)
     ON DUPLICATE KEY UPDATE counter = counter + 1;
     
-    -- Get the updated counter value
     SELECT counter INTO v_counter
     FROM tracking_id_counter
     WHERE date = p_date AND category_abbr = v_category_abbr;
     
-    -- Create tracking_id: CATEGORY-YYYYMMDD-### (e.g., GRB-20251215-001)
     SET o_tracking_id = CONCAT(v_category_abbr, '-', p_date, '-', LPAD(v_counter, 3, '0'));
 END ;;
 DELIMITER ;
@@ -467,15 +452,12 @@ BEGIN
     DECLARE v_date_part VARCHAR(8);
     DECLARE v_counter INT;
     
-    -- Generate date part: YYYYMMDD
     SET v_date_part = DATE_FORMAT(NOW(), '%Y%m%d');
     
-    -- Count suggestions submitted today
     SELECT COUNT(*) + 1 INTO v_counter
     FROM suggestions
     WHERE DATE(date_submitted) = CURDATE();
     
-    -- Create suggestion_id: YYYYMMDD + 3-digit counter (e.g., 20251128001)
     SET v_suggestion_id = CONCAT(v_date_part, LPAD(v_counter, 3, '0'));
     
     INSERT INTO suggestions (suggestion_id, suggestion_text)
@@ -529,8 +511,6 @@ BEGIN
 END ;;
 DELIMITER ;
 
--- Audit Log Procedures
-
 DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_LogAuditAction`(
     IN p_admin_id INT,
@@ -562,6 +542,3 @@ BEGIN
     ORDER BY timestamp DESC;
 END ;;
 DELIMITER ;
-
-
--- DROP DATABASE barangay_db;
