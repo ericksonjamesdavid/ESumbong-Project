@@ -60,16 +60,31 @@ const handleArchiveAnnouncement = (db, req, res) => {
     });
 };
 
-// Get All Announcements Handler
+// Get All Announcements Handler (with optional archived filter)
 const handleGetAnnouncements = (db, req, res) => {
-    const sql = `CALL sp_GetAnnouncements()`;
-    db.query(sql, (err, results) => {
-        if (err) {
-            console.error('Error fetching announcements:', err);
-            return res.status(500).json({ success: false, message: 'Database error' });
-        }
-        res.status(200).json({ success: true, announcements: results[0] });
-    });
+    const archived = req.query.archived === 'true' ? 1 : 0;
+    
+    if (archived) {
+        // Get archived announcements
+        const sql = `SELECT id, title, description, DATE_FORMAT(date_posted, '%b %d, %Y') AS date FROM announcements WHERE is_archived = 1 ORDER BY date_posted DESC`;
+        db.query(sql, (err, results) => {
+            if (err) {
+                console.error('Error fetching archived announcements:', err);
+                return res.status(500).json({ success: false, message: 'Database error' });
+            }
+            res.status(200).json({ success: true, announcements: results });
+        });
+    } else {
+        // Get active announcements
+        const sql = `CALL sp_GetAnnouncements()`;
+        db.query(sql, (err, results) => {
+            if (err) {
+                console.error('Error fetching announcements:', err);
+                return res.status(500).json({ success: false, message: 'Database error' });
+            }
+            res.status(200).json({ success: true, announcements: results[0] });
+        });
+    }
 };
 
 module.exports = { handleCreateAnnouncement, handleUpdateAnnouncement, handleArchiveAnnouncement, handleGetAnnouncements };

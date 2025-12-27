@@ -6,19 +6,25 @@
     </h2>
 
     <div class="bg-white rounded-xl shadow-md border border-gray-200 mb-12 overflow-hidden h-[850px] flex flex-col">
-      <div class="flex border-b border-gray-200 bg-gray-50">
-        <button id="tabAnnouncements"
-          class="flex-1 py-4 text-center font-bold text-gray-600 hover:text-green-800 hover:bg-white transition border-b-2 border-transparent focus:outline-none active-tab">
-          <i class="fas fa-bullhorn mr-2"></i> Announcements
-        </button>
-        <button id="tabNews"
-          class="flex-1 py-4 text-center font-bold text-gray-600 hover:text-emerald-800 hover:bg-white transition border-b-2 border-transparent focus:outline-none">
-          <i class="fas fa-newspaper mr-2"></i> News Articles
-        </button>
+      <div class="px-6 pt-6 pb-2">
+        <div class="bg-gray-100 p-1.5 rounded-xl inline-flex items-center gap-1 shadow-inner border border-gray-200">
+          <button id="tabAnnouncements"
+            class="px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-sm bg-white text-green-800">
+            <i class="fa-solid fa-bullhorn mr-2"></i> Announcements
+          </button>
+          <button id="tabNews"
+            class="px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-green-700 transition-all">
+            <i class="fa-regular fa-newspaper mr-2"></i> News
+          </button>
+          <button id="tabArchives"
+            class="px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-green-700 transition-all">
+            <i class="fa-solid fa-box-archive mr-2"></i> Archives
+          </button>
+        </div>
       </div>
 
       <div class="p-6 flex-grow overflow-y-scroll">
-        
+
         <div id="panelAnnouncements" class="block">
           <div class="flex justify-between items-center mb-6">
             <h3 class="text-xl font-bold text-green-900">Manage Announcements</h3>
@@ -28,7 +34,7 @@
             </button>
           </div>
           <div id="announcementList" class="grid grid-cols-1 gap-4">
-            </div>
+          </div>
         </div>
 
         <div id="panelNews" class="hidden">
@@ -40,7 +46,46 @@
             </button>
           </div>
           <div id="newsList" class="grid grid-cols-1 gap-4">
+          </div>
+        </div>
+
+        <div id="panelArchives" class="hidden animate-fade-in space-y-6">
+
+          <div class="flex justify-center mb-6">
+            <div class="bg-gray-200 p-1 rounded-lg inline-flex shadow-inner">
+              <button id="subTabArchAnn" onclick="switchArchiveSubTab('announcements')"
+                class="px-6 py-2 rounded-md text-sm font-bold bg-white text-green-800 shadow-sm transition-all">
+                Announcements
+              </button>
+              <button id="subTabArchNews" onclick="switchArchiveSubTab('news')"
+                class="px-6 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-green-800 transition-all">
+                News Articles
+              </button>
             </div>
+          </div>
+
+          <div id="containerArchivedAnn">
+            <div class="bg-gray-50 p-6 rounded-xl border-2 border-gray-200 border-dashed min-h-[300px]">
+              <h3 class="text-lg font-bold text-gray-600 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-bullhorn opacity-50"></i> Archived Announcements
+              </h3>
+              <div id="archivedAnnList" class="grid grid-cols-1 gap-4">
+                <p class="text-gray-400 text-sm italic">Loading...</p>
+              </div>
+            </div>
+          </div>
+
+          <div id="containerArchivedNews" class="hidden">
+            <div class="bg-gray-50 p-6 rounded-xl border-2 border-gray-200 border-dashed min-h-[300px]">
+              <h3 class="text-lg font-bold text-gray-600 mb-4 flex items-center gap-2">
+                <i class="fa-regular fa-newspaper opacity-50"></i> Archived News
+              </h3>
+              <div id="archivedNewsList" class="grid grid-cols-1 gap-4">
+                <p class="text-gray-400 text-sm italic">Loading...</p>
+              </div>
+            </div>
+          </div>
+
         </div>
 
       </div>

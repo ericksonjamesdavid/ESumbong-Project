@@ -42,9 +42,9 @@ function renderAnnouncementList(items) {
         el.innerHTML = `
             <div class="flex justify-between items-start mb-1"> 
                 <h4 class="font-bold text-green-900 text-lg">${item.title}</h4>
-                <div class="flex gap-2 ml-4 flex-shrink-0">
+                    <div class="flex gap-2 ml-4 flex-shrink-0">
                     <button class="edit-btn bg-gray-100 hover:bg-green-100 text-green-700 px-3 py-1 rounded transition text-sm font-medium">Edit</button>
-                    <button class="delete-btn bg-gray-100 hover:bg-red-100 text-red-600 px-3 py-1 rounded transition text-sm font-medium">Delete</button>
+                    <button class="delete-btn bg-gray-100 hover:bg-amber-100 text-amber-600 px-3 py-1 rounded transition text-sm font-medium">Archive</button>
                 </div>
             </div>
             <p class="text-xs text-gray-400 mb-1">${item.date}</p>
@@ -59,8 +59,8 @@ function renderAnnouncementList(items) {
             forceUpdateCounters(['announcementTitle', 'announcementDescription']);
         });
 
-        // Delete Action
-        el.querySelector('.delete-btn').addEventListener('click', () => deleteItem(item.id, 'announcements'));
+        // Archive Action (changed from Delete)
+        el.querySelector('.delete-btn').addEventListener('click', () => archiveItem(item.id, 'announcements'));
         return el;
     });
 }
@@ -84,7 +84,7 @@ function renderNewsList(items) {
                     </div>
                     <div class="flex gap-2 ml-2 flex-shrink-0">
                         <button class="edit-btn bg-gray-100 hover:bg-emerald-100 text-emerald-700 px-3 py-1 rounded transition text-sm font-medium">Edit</button>
-                        <button class="delete-btn bg-gray-100 hover:bg-red-100 text-red-600 px-3 py-1 rounded transition text-sm font-medium">Delete</button>
+                        <button class="delete-btn bg-gray-100 hover:bg-amber-100 text-amber-600 px-3 py-1 rounded transition text-sm font-medium">Archive</button>
                     </div>
                 </div>
                 <p class="text-sm text-gray-600 line-clamp-2 mt-1">${item.description}</p>
@@ -100,23 +100,104 @@ function renderNewsList(items) {
             forceUpdateCounters(['newsTitle', 'newsDescription']);
         });
 
-        el.querySelector('.delete-btn').addEventListener('click', () => deleteItem(item.id, 'news'));
+        el.querySelector('.delete-btn').addEventListener('click', () => archiveItem(item.id, 'news'));
         return el;
     });
+}
+
+// --- Load Archived Content ---
+async function loadArchivedContent() {
+    try {
+        const [newsRes, annRes] = await Promise.all([
+            fetch('/api/news?archived=true'),
+            fetch('/api/announcements?archived=true')
+        ]);
+        const newsData = await newsRes.json();
+        const annData = await annRes.json();
+
+        if (annData.success) renderArchivedAnnouncements(annData.announcements);
+        if (newsData.success) renderArchivedNews(newsData.news);
+
+    } catch (error) { console.error('Error loading archived content:', error); }
+}
+
+// --- Render Archived Announcements ---
+function renderArchivedAnnouncements(items) {
+    const container = getEl('archivedAnnList');
+    if (!container) return;
+    container.innerHTML = '';
+    if (items.length === 0) {
+        container.innerHTML = `<p class="text-gray-400 text-sm italic">No archived announcements.</p>`;
+        return;
+    }
+    items.forEach(item => container.appendChild(renderArchiveCard(item, 'announcements')));
+}
+
+// --- Render Archived News ---
+function renderArchivedNews(items) {
+    const container = getEl('archivedNewsList');
+    if (!container) return;
+    container.innerHTML = '';
+    if (items.length === 0) {
+        container.innerHTML = `<p class="text-gray-400 text-sm italic">No archived news articles.</p>`;
+        return;
+    }
+    items.forEach(item => container.appendChild(renderArchiveCard(item, 'news')));
+}
+
+// --- Render Archive Card ---
+function renderArchiveCard(item, type) {
+    const el = document.createElement('div');
+    el.className = "bg-white p-4 rounded-lg border border-gray-200 opacity-75 hover:opacity-100 transition hover:shadow-sm";
+    
+    el.innerHTML = `
+        <div class="flex items-start gap-4">
+            ${type === 'news' && item.imageUrl ? 
+                `<img src="${item.imageUrl}" class="w-12 h-12 rounded object-cover grayscale opacity-60">` : ''}
+            
+            <div class="flex-grow">
+                <h4 class="font-bold text-gray-700 text-md flex items-center gap-2">
+                    ${item.title}
+                    <span class="text-[10px] bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full uppercase tracking-wider">Archived</span>
+                </h4>
+                <p class="text-xs text-gray-400 mt-1">Originally posted: ${item.date}</p>
+                <p class="text-sm text-gray-500 line-clamp-2 mt-1">${item.description}</p>
+            </div>
+        </div>
+    `;
+
+    return el;
 }
 
 // --- Modal & Form Logic ---
 function initContentManagement() {
     // Tab Switching
-    const toggleTab = (showAnn) => {
-        getEl('tabAnnouncements').classList.toggle('active-tab', showAnn);
-        getEl('tabNews').classList.toggle('active-tab', !showAnn);
-        getEl('panelAnnouncements').classList.toggle('hidden', !showAnn);
-        getEl('panelNews').classList.toggle('hidden', showAnn);
+    const tabs = ['Announcements', 'News', 'Archives'];
+    const switchTab = (activeTab) => {
+        tabs.forEach(tab => {
+            const btn = getEl(`tab${tab}`);
+            const panel = getEl(`panel${tab}`);
+            
+            if (btn && panel) {
+                if (tab === activeTab) {
+                    // ACTIVE STATE (White Card)
+                    btn.className = "px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-sm bg-white text-green-800 transform scale-105";
+                    panel.classList.remove('hidden');
+                    
+                    if (tab === 'Archives') loadArchivedContent();
+                    else loadContentManagement();
+                } else {
+                    // INACTIVE STATE (Gray Text)
+                    btn.className = "px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-green-700 hover:bg-gray-200 transition-all";
+                    panel.classList.add('hidden');
+                }
+            }
+        });
     };
     if(getEl('tabAnnouncements')) {
-        getEl('tabAnnouncements').onclick = () => toggleTab(true);
-        getEl('tabNews').onclick = () => toggleTab(false);
+        getEl('tabAnnouncements').onclick = () => switchTab('Announcements');
+        getEl('tabNews').onclick = () => switchTab('News');
+        getEl('tabArchives').onclick = () => switchTab('Archives');
     }
 
     // Setup Modals (Announcements)
@@ -207,8 +288,8 @@ async function handleDataSubmit(type, body, modalId) {
     } catch (e) { alert('Network error'); }
 }
 
-async function deleteItem(id, type) {
-    if (!confirm(`Delete this item?`)) return;
+async function archiveItem(id, type) {
+    if (!confirm(`Archive this item?`)) return;
     try {
         const res = await fetchWithAuth(`/api/${type}/${id}`, { method: 'DELETE' });
         if (res && (await res.json()).success) {
@@ -217,6 +298,8 @@ async function deleteItem(id, type) {
         }
     } catch (e) { alert('Network error'); }
 }
+
+
 
 // --- Counter Logic ---
 
@@ -252,3 +335,31 @@ function forceUpdateCounters(ids) {
         }
     });
 }
+
+// =======================
+// ARCHIVE SUB-TAB LOGIC
+// =======================
+window.switchArchiveSubTab = function(type) {
+    const btnAnn = document.getElementById('subTabArchAnn');
+    const btnNews = document.getElementById('subTabArchNews');
+    const boxAnn = document.getElementById('containerArchivedAnn');
+    const boxNews = document.getElementById('containerArchivedNews');
+
+    if (type === 'announcements') {
+        // Show Announcements, Hide News
+        boxAnn.classList.remove('hidden');
+        boxNews.classList.add('hidden');
+
+        // Style Buttons (Active vs Inactive)
+        btnAnn.className = "px-6 py-2 rounded-md text-sm font-bold bg-white text-green-800 shadow-sm transition-all";
+        btnNews.className = "px-6 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-green-800 transition-all";
+    } else {
+        // Show News, Hide Announcements
+        boxAnn.classList.add('hidden');
+        boxNews.classList.remove('hidden');
+
+        // Style Buttons
+        btnNews.className = "px-6 py-2 rounded-md text-sm font-bold bg-white text-green-800 shadow-sm transition-all";
+        btnAnn.className = "px-6 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-green-800 transition-all";
+    }
+};
