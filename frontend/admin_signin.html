@@ -10,50 +10,123 @@
     <script src="js/auth.js"></script>
 </head>
 
-<body class="bg-green-50 flex items-center justify-center min-h-screen">
+<body class="bg-green-50 flex items-center justify-center min-h-screen relative">
 
-    <div class="bg-white shadow-lg rounded-xl p-10 w-full max-w-md">
+    <div class="bg-white shadow-lg rounded-xl p-10 w-full max-w-md z-10">
         <div class="text-center mb-8">
             <img src="Images/Logo.png" alt="Logo" class="w-24 h-24 mx-auto mb-4">
-            <h1 class="text-2xl font-bold text-green-900">Admin</h1>
-            <p class="text-green-700 text-sm">Access the Barangay Dashboard</p>
+            <h1 class="text-2xl font-bold text-green-900">Admin Portal</h1>
+            <p class="text-green-700 text-sm">Sign in to manage your barangay</p>
         </div>
 
         <form id="adminForm" class="space-y-6">
-            <!-- Username -->
             <div>
                 <label for="username" class="block text-green-900 font-medium mb-1">Username</label>
                 <input type="text" id="username" name="username" placeholder="Enter your username" required
-                       class="w-full border border-green-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-700">
+                       class="w-full border border-green-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-700 transition">
             </div>
 
-            <!-- Password -->
             <div>
                 <label for="password" class="block text-green-900 font-medium mb-1">Password</label>
                 <div class="relative">
                     <input type="password" id="password" name="password" placeholder="Enter your password" required
-                           class="w-full border border-green-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-700 pr-10">
-
-                    <!-- Eye Icon -->
-                    <i id="togglePassword" class="fa-solid fa-eye-slash absolute right-3 top-3 cursor-pointer text-green-800"></i>
+                           class="w-full border border-green-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-700 pr-10 transition">
+                    <i id="togglePassword" class="fa-solid fa-eye-slash absolute right-3 top-3 cursor-pointer text-green-800 hover:text-green-600"></i>
+                </div>
+                <div class="text-right mt-2">
+                    <button type="button" id="forgotPasswordBtn" class="text-sm text-green-600 hover:text-green-800 hover:underline transition">
+                        Forgot Password?
+                    </button>
                 </div>
             </div>
 
-            <!-- Submit -->
             <div>
                 <button type="submit" 
-                        class="w-full bg-green-800 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                        class="w-full bg-green-800 text-white font-bold px-4 py-2.5 rounded-lg hover:bg-green-700 transition shadow-md">
                     Sign In
                 </button>
             </div>
         </form>
 
         <p class="text-sm text-center text-green-900 mt-6">
-            Back to <a href="index.html" class="text-green-700 hover:underline">Home</a>
+            Back to <a href="index.html" class="text-green-700 hover:underline font-semibold">Home</a>
         </p>
     </div>
 
+    <div id="recoveryModal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100">
+            
+            <div class="bg-green-900 text-white p-4 flex justify-between items-center">
+                <h3 class="font-bold text-lg"><i class="fa-solid fa-shield-halved mr-2"></i>Account Recovery</h3>
+                <button id="closeModal" class="text-green-200 hover:text-white transition"><i class="fa-solid fa-times text-xl"></i></button>
+            </div>
+
+            <div id="stepUsername" class="p-6 space-y-4">
+                <div class="text-center">
+                    <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fa-solid fa-user text-2xl text-blue-700"></i>
+                    </div>
+                    <p class="text-gray-600 text-sm">Please enter your <strong>Admin Username</strong> to proceed with account recovery.</p>
+                </div>
+
+                <div>
+                    <input type="text" id="recoveryUsername" placeholder="Enter your username" 
+                           class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 transition">
+                </div>
+
+                <button id="verifyUsernameBtn" class="w-full bg-blue-700 text-white font-bold py-2 rounded-lg hover:bg-blue-800 transition">
+                    Continue
+                </button>
+            </div>
+
+            <div id="stepVerify" class="p-6 space-y-4 hidden">
+                <div class="text-center">
+                    <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fa-solid fa-lock text-2xl text-green-700"></i>
+                    </div>
+                    <p class="text-gray-600 text-sm">Please enter the <strong>4-Digit Master PIN</strong> provided during system setup to reset your password.</p>
+                </div>
+
+                <div>
+                    <input type="password" id="recoveryPin" maxlength="4" placeholder="• • • •" 
+                           class="w-full text-center text-2xl tracking-widest border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 font-mono transition">
+                </div>
+
+                <button id="verifyPinBtn" class="w-full bg-green-700 text-white font-bold py-2 rounded-lg hover:bg-green-800 transition">
+                    Verify PIN
+                </button>
+            </div>
+
+            <div id="stepReset" class="p-6 space-y-4 hidden">
+                <div class="text-center mb-2">
+                    <i class="fa-solid fa-check-circle text-4xl text-green-600 mb-2"></i>
+                    <h4 class="font-bold text-gray-800">PIN Verified!</h4>
+                    <p class="text-xs text-gray-500">Set your new password below.</p>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="relative">
+                        <input type="password" id="newRecPass" placeholder="New Password" 
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 pr-10">
+                        <i id="toggleNewPass" class="fa-solid fa-eye-slash absolute right-3 top-2.5 cursor-pointer text-gray-600 hover:text-gray-800"></i>
+                    </div>
+                    <div class="relative">
+                        <input type="password" id="confirmRecPass" placeholder="Confirm Password" 
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 pr-10">
+                        <i id="toggleConfirmPass" class="fa-solid fa-eye-slash absolute right-3 top-2.5 cursor-pointer text-gray-600 hover:text-gray-800"></i>
+                    </div>
+                </div>
+
+                <button id="saveNewPassBtn" class="w-full bg-green-700 text-white font-bold py-2 rounded-lg hover:bg-green-800 transition mt-2">
+                    Update Password
+                </button>
+            </div>
+
+        </div>
+    </div>
+
     <script>
+        // --- 1. LOGIN LOGIC ---
         const form = document.getElementById("adminForm");
         const usernameField = document.getElementById("username");
         const passwordField = document.getElementById("password");
@@ -63,47 +136,176 @@
             const username = usernameField.value.trim();
             const password = passwordField.value.trim();
 
-            if (!username || !password) {
-                alert("Please enter both username and password.");
-                return;
-            }
+            if (!username || !password) return alert("Please enter both username and password.");
 
             try {
                 const response = await fetch('/api/admin/login', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ username: username, password: password })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
                 });
 
                 const result = await response.json();
-
                 if (result.success) {
-                    storeJWTToken(result.token); // Use auth.js function
-                    
+                    storeJWTToken(result.token); 
                     localStorage.setItem("defaultSection", "sectionAnnouncements");
                     window.location.href = "admin_dashboard.html";
                 } else {
                     alert(result.message || 'Invalid username or password!');
                 }
-
             } catch (error) {
                 console.error('Login error:', error);
-                alert('An error occurred during login. Please try again.');
+                alert('Connection error.');
             }
         });
 
         // Toggle Password Visibility
-        const togglePassword = document.getElementById("togglePassword");
-
-        togglePassword.addEventListener("click", () => {
+        document.getElementById("togglePassword").addEventListener("click", function() {
             const type = passwordField.type === "password" ? "text" : "password";
             passwordField.type = type;
-            togglePassword.classList.toggle("fa-eye");
-            togglePassword.classList.toggle("fa-eye-slash");
+            this.classList.toggle("fa-eye");
+            this.classList.toggle("fa-eye-slash");
         });
-    </script>
 
+        // Toggle New Password Visibility
+        document.getElementById("toggleNewPass").addEventListener("click", function() {
+            const newPassField = document.getElementById("newRecPass");
+            const type = newPassField.type === "password" ? "text" : "password";
+            newPassField.type = type;
+            this.classList.toggle("fa-eye");
+            this.classList.toggle("fa-eye-slash");
+        });
+
+        // Toggle Confirm Password Visibility
+        document.getElementById("toggleConfirmPass").addEventListener("click", function() {
+            const confirmPassField = document.getElementById("confirmRecPass");
+            const type = confirmPassField.type === "password" ? "text" : "password";
+            confirmPassField.type = type;
+            this.classList.toggle("fa-eye");
+            this.classList.toggle("fa-eye-slash");
+        });
+
+        // --- 2. RECOVERY MODAL LOGIC ---
+        const modal = document.getElementById('recoveryModal');
+        const stepUsername = document.getElementById('stepUsername');
+        const stepVerify = document.getElementById('stepVerify');
+        const stepReset = document.getElementById('stepReset');
+        const pinInput = document.getElementById('recoveryPin');
+        const usernameInput = document.getElementById('recoveryUsername');
+        let recoveredUsername = ''; // Store username for later verification
+
+        // Open Modal
+        document.getElementById('forgotPasswordBtn').addEventListener('click', () => {
+            modal.classList.remove('hidden');
+            stepUsername.classList.remove('hidden');
+            stepVerify.classList.add('hidden');
+            stepReset.classList.add('hidden');
+            usernameInput.value = '';
+            pinInput.value = '';
+        });
+
+        // Close Modal
+        document.getElementById('closeModal').addEventListener('click', () => {
+            modal.classList.add('hidden');
+        });
+
+        // VERIFY USERNAME BUTTON
+        document.getElementById('verifyUsernameBtn').addEventListener('click', async () => {
+            const username = usernameInput.value.trim();
+            if (!username) return alert("Please enter your username.");
+
+            try {
+                const res = await fetch('/api/admin/verify-username', { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ username: username }) 
+                });
+                const data = await res.json();
+                
+                if(data.success) {
+                    // Username verified, store it and move to PIN step
+                    recoveredUsername = username;
+                    stepUsername.classList.add('hidden');
+                    stepVerify.classList.remove('hidden');
+                    pinInput.value = '';
+                } else {
+                    alert((data.message || "Username not found. Please check and try again."));
+                    usernameInput.value = '';
+                }
+            } catch (e) {
+                alert("Error verifying username. Please try again.");
+                console.error(e);
+            }
+        });
+
+        // VERIFY PIN BUTTON
+        document.getElementById('verifyPinBtn').addEventListener('click', async () => {
+            const pin = pinInput.value.trim();
+            if (pin.length !== 4) return alert("Please enter a 4-digit PIN.");
+
+            try {
+                const res = await fetch('/api/admin/verify-pin', { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ pin: pin }) 
+                });
+                const data = await res.json();
+                
+                if(data.success) {
+                    // Success! Switch to Step 2
+                    stepVerify.classList.add('hidden');
+                    stepReset.classList.remove('hidden');
+                } else {
+                    alert((data.message || "Incorrect PIN. Please try again."));
+                    pinInput.value = '';
+                }
+            } catch (e) {
+                alert("Error verifying PIN. Please try again.");
+                console.error(e);
+            }
+        });
+
+        // SAVE NEW PASSWORD BUTTON
+        document.getElementById('saveNewPassBtn').addEventListener('click', async () => {
+            const newPass = document.getElementById('newRecPass').value;
+            const confirmPass = document.getElementById('confirmRecPass').value;
+
+            if (!newPass || !confirmPass) return alert("Please fill all fields.");
+            if (newPass !== confirmPass) return alert("Passwords do not match.");
+            if (newPass.length < 8) return alert("Password must be at least 8 characters.");
+            if (!recoveredUsername) return alert("Username verification failed. Please restart the process.");
+
+            try {
+                const res = await fetch('/api/admin/reset-password-via-pin', { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ 
+                        username: recoveredUsername,
+                        pin: pinInput.value,
+                        newPassword: newPass 
+                    }) 
+                });
+                
+                const data = await res.json();
+                
+                if(data.success) {
+                    alert("✓ Password Reset Successful!\n\nYou can now log in with your new password.");
+                    modal.classList.add('hidden');
+                    // Clear form fields
+                    usernameInput.value = '';
+                    pinInput.value = '';
+                    document.getElementById('newRecPass').value = '';
+                    document.getElementById('confirmRecPass').value = '';
+                    recoveredUsername = '';
+                } else {
+                    alert((data.message || "Error resetting password."));
+                }
+            } catch (e) {
+                alert("Connection error while resetting password.");
+                console.error(e);
+            }
+        });
+
+    </script>
 </body>
 </html>

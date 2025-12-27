@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 
 // --- CONFIGURE THIS ---
 const newUsername = 'admin';
-const newPassword = 'password123';
+const newPassword = 'admin123';
 // ----------------------
 
 const db = mysql.createConnection({
@@ -22,17 +22,17 @@ bcrypt.hash(newPassword, 10, (err, hash) => {
     
     console.log('Hashed password:', hash);
     
-    // Connect to DB and insert
+    // Connect to DB and update/insert
     db.connect(err => {
         if (err) return console.error('Error connecting:', err);
         
-        const sql = "INSERT INTO admins (username, password_hash) VALUES (?, ?)";
+        const sql = "UPDATE admins SET password_hash = ? WHERE username = ?";
         
-        db.query(sql, [newUsername, hash], (err, result) => {
+        db.query(sql, [hash, newUsername], (err, result) => {
             if (err) {
-                console.error('Error creating admin:', err.message);
+                console.error('Error updating admin:', err.message);
             } else {
-                console.log(`Successfully created admin user '${newUsername}'!`);
+                console.log(`Successfully updated admin user '${newUsername}' password!`);
             }
             db.end();
         });

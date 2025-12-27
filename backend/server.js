@@ -8,7 +8,7 @@ require('dotenv').config();
 const { verifyJWT } = require('./middleware/auth');
 
 // Import handlers
-const { handleAdminLogin, handlePasswordUpdate } = require('./handlers/adminHandlers');
+const { handleAdminLogin, handlePasswordUpdate, handleVerifyUsername, handleVerifyPin, handleResetPasswordViaPin } = require('./handlers/adminHandlers');
 const { handleReportSubmission, handleGetAllReports, handleUpdateReportStatus, handleGetReportByTrackingId } = require('./handlers/reportHandlers');
 const { handleCreateAnnouncement, handleUpdateAnnouncement, handleArchiveAnnouncement, handleGetAnnouncements } = require('./handlers/announcementHandlers');
 const { handleCreateNews, handleUpdateNews, handleArchiveNews, handleGetNews } = require('./handlers/newsHandlers');
@@ -40,8 +40,6 @@ app.use((req, res, next) => {
     }
     next();
 });
-
-app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
 // File Upload Configuration
 const storage = multer.diskStorage({
@@ -86,6 +84,18 @@ app.post('/api/admin/login', (req, res) => {
 
 app.patch('/api/admin/update-password', verifyJWT, (req, res) => {
     handlePasswordUpdate(db, req, res);
+});
+
+app.post('/api/admin/verify-username', (req, res) => {
+    handleVerifyUsername(db, req, res);
+});
+
+app.post('/api/admin/verify-pin', (req, res) => {
+    handleVerifyPin(req, res);
+});
+
+app.post('/api/admin/reset-password-via-pin', (req, res) => {
+    handleResetPasswordViaPin(db, req, res);
 });
 
 // ============================================================
@@ -208,6 +218,12 @@ app.get('/api/dashboard/stats', (req, res) => {
 app.get('/api/audit-logs', verifyJWT, (req, res) => {
     handleGetAuditLogs(db, req, res);
 });
+
+// ============================================================
+// SERVE STATIC FILES - Place after all API routes
+// ============================================================
+
+app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
 // ============================================================
 // ERROR HANDLING - 404

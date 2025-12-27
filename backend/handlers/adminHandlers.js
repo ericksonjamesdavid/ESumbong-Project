@@ -39,6 +39,7 @@ const handleAdminLogin = (db, req, res) => {
             const isMatch = await bcrypt.compare(password, admin.password_hash);
 
             if (!isMatch) {
+                console.warn(`Failed login attempt for username: ${username}`);
                 return res.status(401).json({ success: false, message: 'Invalid username or password' });
             }
 
@@ -55,7 +56,7 @@ const handleAdminLogin = (db, req, res) => {
 
         } catch (error) {
             console.error('Error comparing password:', error);
-            res.status(500).json({ success: false, message: 'Server error' });
+            res.status(500).json({ success: false, message: 'Password validation error. Please try again.' });
         }
     });
 };
@@ -123,4 +124,117 @@ const handlePasswordUpdate = (db, req, res) => {
     }
 };
 
-module.exports = { handleAdminLogin, handlePasswordUpdate, logAuditAction };
+// Verify username exists for password recovery
+const handleVerifyUsername = (db, req, res) => {
+    const { username } = req.body;
+
+    if (!username || username.trim() === '') {
+        return res.status(400).json({ success: false, message: 'Username is required.' });
+    }
+
+    // Check if username exists in the system
+    const sqlCheckUsername = "SELECT id FROM admins WHERE username = ?";
+    db.query(sqlCheckUsername, [username], (err, results) => {
+        if (err) {
+            console.error('Error checking username:', err);
+            return res.status(500).json({ success: false, message: 'Database error.' });
+        }
+
+        if (results.length === 0) {
+            return res.status(401).json({ success: false, message: 'Username does not exist in the system.' });
+        }
+
+        res.status(200).json({ success: true, message: 'Username verified successfully.' });
+    });
+};
+
+// Verify PIN for password recovery
+const handleVerifyPin = (req, res) => {
+    const { pin } = req.body;
+
+    if (!pin || pin.length !== 4) {
+        return res.status(400).json({ success: false, message: 'PIN must be 4 digits.' });
+    }
+
+    // Master PIN stored in environment variable for security
+    const MASTER_PIN = process.env.MASTER_PIN || '1234';
+
+    if (pin === MASTER_PIN) {
+        res.status(200).json({ success: true, message: 'PIN verified successfully.' });
+    } else {
+        res.status(401).json({ success: false, message: 'Invalid PIN.' });
+    }
+};
+
+// Reset password via PIN
+const handleResetPasswordViaPin = (db, req, res) => {
+    const { pin, newPassword, username } = req.body;
+
+    // Validation
+    if (!pin || !newPassword || !username) {
+        return res.status(400).json({ success: false, message: 'PIN, username, and new password are required.' });
+    }
+
+    if (pin.length !== 4) {
+        return res.status(400).json({ success: false, message: 'Invalid PIN format.' });
+    }
+
+    // Verify PIN
+    const MASTER_PIN = process.env.MASTER_PIN || '1234';
+    if (pin !== MASTER_PIN) {
+        return res.status(401).json({ success: false, message: 'Invalid PIN.' });
+    }
+
+    // Password strength validation
+    const passwordPattern = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+    if (!passwordPattern.test(newPassword)) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Password must be at least 8 characters with uppercase, lowercase, number, and symbol.' 
+        });
+    }
+
+    try {
+        // First, verify the username exists in the system
+        const sqlCheckUsername = "SELECT id FROM admins WHERE username = ?";
+        db.query(sqlCheckUsername, [username], (err, results) => {
+            if (err) {
+                console.error('Error checking username:', err);
+                return res.status(500).json({ success: false, message: 'Database error.' });
+            }
+
+            if (results.length === 0) {
+                return res.status(401).json({ success: false, message: 'Username does not exist in the system.' });
+            }
+
+            const adminId = results[0].id;
+
+            // Hash new password
+            bcrypt.hash(newPassword, 10, (hashErr, hashedPassword) => {
+                if (hashErr) {
+                    console.error('Error hashing password:', hashErr);
+                    return res.status(500).json({ success: false, message: 'Error processing password.' });
+                }
+
+                // Update password for the verified username
+                const sqlUpdatePassword = "UPDATE admins SET password_hash = ? WHERE username = ?";
+                db.query(sqlUpdatePassword, [hashedPassword, username], (updateErr) => {
+                    if (updateErr) {
+                        console.error('Error updating password:', updateErr);
+                        return res.status(500).json({ success: false, message: 'Database error.' });
+                    }
+
+                    // Log password reset to audit_logs
+                    logAuditAction(db, adminId, 'System', 'PASSWORD_RESET', 'admins', adminId, `Password was reset via recovery PIN for user: ${username}`);
+
+                    res.status(200).json({ success: true, message: 'Password reset successfully. Please login with your new password.' });
+                });
+            });
+        });
+    } catch (error) {
+        console.error('Error resetting password:', error);
+        res.status(500).json({ success: false, message: 'Server error.' });
+    }
+};
+
+module.exports = { handleAdminLogin, handlePasswordUpdate, handleVerifyUsername, handleVerifyPin, handleResetPasswordViaPin, logAuditAction };
