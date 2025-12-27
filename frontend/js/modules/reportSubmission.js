@@ -76,14 +76,20 @@ export const initReportSubmission = () => {
             document.getElementById('confirmModal').classList.add('hidden');
             document.getElementById('loadingModal').classList.remove('hidden');
 
-            // Simulate longer loading for better UX
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            // Smart minimum delay for loading state visibility
+            const startTime = Date.now();
 
             try {
                 const response = await fetch('/api/submit-report', {
                     method: 'POST',
                     body: formData
                 });
+
+                // Ensure loading state is visible for at least 600ms
+                const elapsedTime = Date.now() - startTime;
+                if (elapsedTime < 600) {
+                    await new Promise(resolve => setTimeout(resolve, 600 - elapsedTime));
+                }
 
                 const result = await response.json();
 

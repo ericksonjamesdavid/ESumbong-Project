@@ -4,11 +4,12 @@ document.getElementById("sidebarToggle").addEventListener("click", () => {
 
 // Hide sidebar when clicking the arrow icon
 const hideSidebar = document.getElementById('hideSidebar');
+const sidebar = document.getElementById('sidebar');
+const sidebarToggle = document.getElementById('sidebarToggle');
 
 if (hideSidebar) {
   hideSidebar.addEventListener('click', () => {
     sidebar.classList.add('-translate-x-full');
-    icon.classList.add('fa-bars');
   });
 }
 
@@ -19,10 +20,121 @@ document.addEventListener('click', (event) => {
 
   if (!isClickInsideSidebar && !isClickOnToggle) {
     sidebar.classList.add('-translate-x-full');
-    icon.classList.add('fa-bars');
-    icon.classList.remove('fa-xmark');
   }
 });
+
+// Initialize Settings
+function initSettings() {
+    // Check if user is logged in
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+        // Not logged in - redirect to login page
+        alert('Please log in to access Account Settings.');
+        window.location.href = 'admin_signin.html';
+        return;
+    }
+    
+    // Load admin profile from the database
+    loadAdminProfile();
+}
+
+// Load Admin Profile from Database
+async function loadAdminProfile() {
+    try {
+        const response = await fetchWithAuth('/api/admin/profile', {
+            method: 'GET'
+        });
+        
+        if (!response) {
+            // Fallback to localStorage if no response (token expired or unauthorized)
+            const savedName = localStorage.getItem('adminDisplayName');
+            const cardName = document.getElementById('displayProfileName');
+            if (cardName) {
+                cardName.textContent = savedName || 'Super Admin';
+                cardName.classList.remove('animate-pulse');
+            }
+            return;
+        }
+
+        // Check response status before trying to parse JSON
+        if (!response.ok) {
+            // Server error or unauthorized - fallback to localStorage
+            const savedName = localStorage.getItem('adminDisplayName');
+            const cardName = document.getElementById('displayProfileName');
+            if (cardName) {
+                cardName.textContent = savedName || 'Super Admin';
+                cardName.classList.remove('animate-pulse');
+            }
+            return;
+        }
+
+        const result = await response.json();
+        
+        if (result.success && result.profile) {
+            const displayName = result.profile.display_name || 'Super Admin';
+            
+            // Update the Identity Card
+            const cardName = document.getElementById('displayProfileName');
+            if (cardName) {
+                cardName.textContent = displayName;
+                cardName.classList.remove('animate-pulse'); // Remove skeleton loader animation
+            }
+            
+            // Also save to localStorage for quick access
+            localStorage.setItem('adminDisplayName', displayName);
+        }
+    } catch (error) {
+        console.error('Error loading admin profile:', error);
+        
+        // Fallback to localStorage
+        const savedName = localStorage.getItem('adminDisplayName');
+        const cardName = document.getElementById('displayProfileName');
+        if (cardName) {
+            cardName.textContent = savedName || 'Super Admin';
+            cardName.classList.remove('animate-pulse');
+        }
+    }
+}
+
+// Update Admin Profile (for display name changes)
+async function updateAdminProfile(displayName) {
+    try {
+        const response = await fetchWithAuth('/api/admin/profile', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ displayName })
+        });
+        
+        if (!response) {
+            alert('Server error occurred');
+            return false;
+        }
+
+        const result = await response.json();
+        
+        if (result.success) {
+            // Update the Identity Card
+            const cardName = document.getElementById('displayProfileName');
+            if (cardName) {
+                cardName.textContent = displayName;
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('adminDisplayName', displayName);
+            return true;
+        } else {
+            alert('Error: ' + result.message);
+            return false;
+        }
+    } catch (error) {
+        console.error('Error updating admin profile:', error);
+        alert('Network error: Failed to update profile');
+        return false;
+    }
+}
+
+// Call initSettings when page loads
+document.addEventListener('DOMContentLoaded', initSettings);
 
 // ---Helper function to show the main error/success message  ---
 function showPasswordError(msg, isSuccess = false) {
@@ -64,6 +176,10 @@ function hidePasswordError() {
 
 // --- UPDATED: updatePassword function with API call ---
 async function updatePassword() {
+  // Get button reference for loading state
+  const btn = document.querySelector('button[onclick="updatePassword()"]');
+  const originalText = btn.innerText;
+
   // Hide any old errors first
   hidePasswordError();
   const matchError = document.getElementById("matchError");
@@ -92,8 +208,14 @@ async function updatePassword() {
     return showPasswordError("Password does not meet security requirements. Please check all rules.");
   }
 
-  // Send to backend API
+  // Show Loading State
+  btn.disabled = true;
+  btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Updating...`;
+  btn.classList.add('opacity-75', 'cursor-not-allowed');
+
+  // Send to backend API with minimum delay for visibility
   try {
+    const startTime = Date.now();
     const response = await fetchWithAuth('/api/admin/update-password', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -104,7 +226,19 @@ async function updatePassword() {
       })
     });
 
-    if (!response) return; // Token expired
+    // Ensure loading state is visible for at least 600ms
+    const elapsedTime = Date.now() - startTime;
+    if (elapsedTime < 600) {
+      await new Promise(resolve => setTimeout(resolve, 600 - elapsedTime));
+    }
+
+    if (!response) {
+      // Restore button
+      btn.disabled = false;
+      btn.innerText = originalText;
+      btn.classList.remove('opacity-75', 'cursor-not-allowed');
+      return; // Token expired
+    }
 
     const result = await response.json();
 
@@ -126,10 +260,18 @@ async function updatePassword() {
       }
     } else {
       showPasswordError(result.msg || "Failed to update password");
+      // Restore button on error
+      btn.disabled = false;
+      btn.innerText = originalText;
+      btn.classList.remove('opacity-75', 'cursor-not-allowed');
     }
   } catch (error) {
     console.error('Error updating password:', error);
     showPasswordError("Network error. Please try again.");
+    // Restore button on error
+    btn.disabled = false;
+    btn.innerText = originalText;
+    btn.classList.remove('opacity-75', 'cursor-not-allowed');
   }
 }
 
@@ -206,3 +348,226 @@ document.addEventListener("DOMContentLoaded", () => {
     confirmPassInput.addEventListener("input", checkPasswordMatch);
   }
 });
+
+// =======================
+// HANDOVER LOGIC (MODAL)
+// =======================
+
+// 1a. Open PIN Verification Modal (Security Layer)
+function confirmHandover() {
+    // Clear previous PIN input
+    document.getElementById('handoverPinInput').value = '';
+    document.getElementById('handoverPinError').classList.add('hidden');
+
+    // Show PIN Modal
+    const pinModal = document.getElementById('handoverPinModal');
+    if (pinModal) {
+        pinModal.classList.remove('hidden');
+        document.getElementById('handoverPinInput').focus();
+    }
+}
+
+// 1b. Verify PIN before showing handover modal
+async function verifyHandoverPin() {
+    const pin = document.getElementById('handoverPinInput').value;
+    const errorMsg = document.getElementById('handoverPinError');
+    const btn = document.querySelector('#handoverPinModal button[onclick="verifyHandoverPin()"]');
+    const originalText = btn.innerText;
+
+    // Reset Error
+    errorMsg.classList.add('hidden');
+    errorMsg.textContent = '';
+
+    // Validation
+    if (!pin || pin.length !== 4) {
+        errorMsg.textContent = "Please enter a valid 4-digit PIN.";
+        errorMsg.classList.remove('hidden');
+        return;
+    }
+
+    // Show Loading State
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Verifying...`;
+    btn.classList.add('opacity-75', 'cursor-not-allowed');
+
+    try {
+        const startTime = Date.now();
+        // Call the verify PIN API (same as forgot password)
+        const response = await fetch('/api/admin/verify-pin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                username: 'admin',  // Default admin username
+                pin: pin 
+            })
+        });
+
+        // Ensure loading state is visible for at least 600ms
+        const elapsedTime = Date.now() - startTime;
+        if (elapsedTime < 600) {
+            await new Promise(resolve => setTimeout(resolve, 600 - elapsedTime));
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Close PIN modal and open handover modal
+            closeHandoverPinModal();
+            openHandoverModal();
+        } else {
+            errorMsg.textContent = result.message || "Invalid PIN.";
+            errorMsg.classList.remove('hidden');
+            // Restore button on error
+            btn.disabled = false;
+            btn.innerText = originalText;
+            btn.classList.remove('opacity-75', 'cursor-not-allowed');
+        }
+    } catch (error) {
+        console.error("PIN verification error:", error);
+        errorMsg.textContent = "Network error. Please try again.";
+        errorMsg.classList.remove('hidden');
+        // Restore button on error
+        btn.disabled = false;
+        btn.innerText = originalText;
+        btn.classList.remove('opacity-75', 'cursor-not-allowed');
+    }
+}
+
+// 1c. Close PIN Modal
+function closeHandoverPinModal() {
+    const pinModal = document.getElementById('handoverPinModal');
+    if (pinModal) {
+        pinModal.classList.add('hidden');
+        
+        // Reset button state to prevent it from staying disabled
+        const btn = document.querySelector('#handoverPinModal button[onclick="verifyHandoverPin()"]');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerText = 'Verify PIN';
+            btn.classList.remove('opacity-75', 'cursor-not-allowed');
+        }
+        
+        // Clear PIN input and error message
+        document.getElementById('handoverPinInput').value = '';
+        const errorMsg = document.getElementById('handoverPinError');
+        if (errorMsg) {
+            errorMsg.classList.add('hidden');
+            errorMsg.textContent = '';
+        }
+    }
+}
+
+// =======================
+// HANDOVER LOGIC (Concatenation)
+// =======================
+
+// 1. Open Modal (Clear both inputs)
+function openHandoverModal() {
+    document.getElementById('handoverFirstName').value = ''; 
+    document.getElementById('handoverLastName').value = '';
+    document.getElementById('handoverPass').value = '';
+    document.getElementById('handoverConfirm').value = '';
+    document.getElementById('handoverError').classList.add('hidden');
+
+    const modal = document.getElementById('handoverModal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+// 2. Close the Modal
+function closeHandoverModal() {
+    const modal = document.getElementById('handoverModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+// 3. Submit Logic (Concatenate & Send)
+async function submitHandover() {
+    // A. Get values from the two separate inputs
+    const fName = document.getElementById('handoverFirstName').value.trim();
+    const lName = document.getElementById('handoverLastName').value.trim();
+    
+    const pass = document.getElementById('handoverPass').value;
+    const confirmPass = document.getElementById('handoverConfirm').value;
+    const errorMsg = document.getElementById('handoverError');
+    const btn = document.querySelector('#handoverModal button[onclick="submitHandover()"]');
+    const originalText = btn.innerText;
+
+    // Reset UI
+    errorMsg.classList.add('hidden');
+    errorMsg.textContent = '';
+
+    // B. Validate
+    if (!fName || !lName || !pass || !confirmPass) {
+        errorMsg.textContent = "Please fill in all fields (First & Last Name required).";
+        errorMsg.classList.remove('hidden');
+        return;
+    }
+
+    if (pass !== confirmPass) {
+        errorMsg.textContent = "Passwords do not match.";
+        errorMsg.classList.remove('hidden');
+        return;
+    }
+
+    if (pass.length < 8) {
+        errorMsg.textContent = "Password must be at least 8 characters.";
+        errorMsg.classList.remove('hidden');
+        return;
+    }
+
+    // C. CONCATENATE: Join them with a space
+    // Example: "Maria" + " " + "Clara" = "Maria Clara"
+    const fullName = `${fName} ${lName}`;
+
+    // D. Confirmation
+    if (!window.confirm(`Transfer account to "${fullName}"? You will be logged out.`)) {
+        return;
+    }
+
+    // E. Loading State
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Transferring...`;
+    btn.classList.add('opacity-75', 'cursor-not-allowed');
+
+    try {
+        const startTime = Date.now();
+        
+        // F. Send the Combined Name to the Backend
+        const response = await fetchWithAuth('/api/admin/handover', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                newDisplayName: fullName, // Sending "Maria Clara"
+                newPassword: pass 
+            })
+        });
+
+        // Artificial delay for UX
+        const elapsedTime = Date.now() - startTime;
+        if (elapsedTime < 600) await new Promise(r => setTimeout(r, 600 - elapsedTime));
+
+        if (!response) throw new Error("Server error");
+        const result = await response.json();
+
+        if (result.success) {
+            // Update Local Data
+            localStorage.setItem('adminDisplayName', fullName);
+            localStorage.removeItem('authToken');
+
+            alert(`✅ Handover Complete!\n\nWelcome, ${fullName}.\nRedirecting to login...`);
+            window.location.href = 'admin_signin.html';
+        } else {
+            throw new Error(result.message || "Handover failed");
+        }
+
+    } catch (error) {
+        console.error("Handover error:", error);
+        errorMsg.textContent = error.message || "Network error during handover.";
+        errorMsg.classList.remove('hidden');
+        
+        btn.disabled = false;
+        btn.innerText = originalText;
+        btn.classList.remove('opacity-75', 'cursor-not-allowed');
+    }
+}

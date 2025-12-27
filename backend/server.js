@@ -8,7 +8,7 @@ require('dotenv').config();
 const { verifyJWT } = require('./middleware/auth');
 
 // Import handlers
-const { handleAdminLogin, handlePasswordUpdate, handleVerifyUsername, handleVerifyPin, handleResetPasswordViaPin } = require('./handlers/adminHandlers');
+const { handleAdminLogin, handlePasswordUpdate, handleVerifyUsername, handleVerifyPin, handleResetPasswordViaPin, handleGetAdminProfile, handleUpdateAdminProfile, handleHandoverAccount } = require('./handlers/adminHandlers');
 const { handleReportSubmission, handleGetAllReports, handleUpdateReportStatus, handleGetReportByTrackingId } = require('./handlers/reportHandlers');
 const { handleCreateAnnouncement, handleUpdateAnnouncement, handleArchiveAnnouncement, handleGetAnnouncements } = require('./handlers/announcementHandlers');
 const { handleCreateNews, handleUpdateNews, handleArchiveNews, handleGetNews } = require('./handlers/newsHandlers');
@@ -96,6 +96,19 @@ app.post('/api/admin/verify-pin', (req, res) => {
 
 app.post('/api/admin/reset-password-via-pin', (req, res) => {
     handleResetPasswordViaPin(db, req, res);
+});
+
+// Admin Profile Routes
+app.get('/api/admin/profile', verifyJWT, (req, res) => {
+    handleGetAdminProfile(db, req, res);
+});
+
+app.patch('/api/admin/profile', verifyJWT, (req, res) => {
+    handleUpdateAdminProfile(db, req, res);
+});
+
+app.post('/api/admin/handover', verifyJWT, (req, res) => {
+    handleHandoverAccount(db, req, res);
 });
 
 // ============================================================

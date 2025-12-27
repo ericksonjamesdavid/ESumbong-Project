@@ -237,4 +237,88 @@ const handleResetPasswordViaPin = (db, req, res) => {
     }
 };
 
-module.exports = { handleAdminLogin, handlePasswordUpdate, handleVerifyUsername, handleVerifyPin, handleResetPasswordViaPin, logAuditAction };
+// Get Admin Profile Handler
+const handleGetAdminProfile = (db, req, res) => {
+    const adminId = req.admin?.id;
+    
+    if (!adminId) {
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const sql = `CALL sp_GetAdminProfile(?)`;
+    db.query(sql, [adminId], (err, results) => {
+        if (err) {
+            console.error('Error fetching admin profile:', err);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+
+        if (!results[0] || results[0].length === 0) {
+            return res.status(404).json({ success: false, message: 'Admin profile not found' });
+        }
+
+        res.status(200).json({ success: true, profile: results[0][0] });
+    });
+};
+
+// Update Admin Profile Handler
+const handleUpdateAdminProfile = (db, req, res) => {
+    const adminId = req.admin?.id;
+    const { displayName } = req.body;
+    
+    if (!adminId) {
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    if (!displayName || displayName.trim() === '') {
+        return res.status(400).json({ success: false, message: 'Display name is required' });
+    }
+
+    const sql = `CALL sp_UpdateAdminProfile(?, ?)`;
+    db.query(sql, [adminId, displayName.trim()], (err, results) => {
+        if (err) {
+            console.error('Error updating admin profile:', err);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+
+        logAuditAction(db, adminId, 'Admin', 'PROFILE_UPDATED', 'admins', adminId, `Updated profile display name to: "${displayName}".`);
+
+        res.status(200).json({ success: true, message: 'Profile updated successfully', profile: results[0][0] });
+    });
+};
+
+// Handover Account Handler
+const handleHandoverAccount = (db, req, res) => {
+    const adminId = req.admin?.id;
+    const { newDisplayName, newPassword } = req.body;
+    
+    if (!adminId) {
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    if (!newDisplayName || !newPassword) {
+        return res.status(400).json({ success: false, message: 'Display name and password are required' });
+    }
+
+    // Hash new password
+    bcrypt.hash(newPassword, 10, (hashErr, hashedPassword) => {
+        if (hashErr) {
+            console.error('Error hashing password:', hashErr);
+            return res.status(500).json({ success: false, message: 'Error processing password' });
+        }
+
+        // Update both display name and password
+        const sql = "UPDATE admins SET display_name = ?, password_hash = ? WHERE id = ?";
+        db.query(sql, [newDisplayName.trim(), hashedPassword, adminId], (err) => {
+            if (err) {
+                console.error('Error updating admin for handover:', err);
+                return res.status(500).json({ success: false, message: 'Database error' });
+            }
+
+            logAuditAction(db, adminId, 'Admin', 'ACCOUNT_HANDOVER', 'admins', adminId, `Account transferred to new administrator: "${newDisplayName}"`);
+
+            res.status(200).json({ success: true, message: 'Account handover completed successfully' });
+        });
+    });
+};
+
+module.exports = { handleAdminLogin, handlePasswordUpdate, handleVerifyUsername, handleVerifyPin, handleResetPasswordViaPin, handleGetAdminProfile, handleUpdateAdminProfile, handleHandoverAccount, logAuditAction };

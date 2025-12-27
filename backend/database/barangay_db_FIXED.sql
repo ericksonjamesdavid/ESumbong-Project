@@ -10,6 +10,7 @@ CREATE TABLE `admins` (
   `id` int NOT NULL AUTO_INCREMENT,
   `username` varchar(100) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
+  `display_name` varchar(255) DEFAULT NULL,
   `date_created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`)
@@ -21,7 +22,7 @@ CREATE TABLE `admins` (
 --
 
 LOCK TABLES `admins` WRITE;
-INSERT INTO `admins` VALUES (1,'admin','$2b$10$9H0n9oAftJhRaKcaMXtirec/8vdpHmc7h4HM46ddj/Vpr4ILBKxaK','2025-11-14 06:15:48');
+INSERT INTO `admins` VALUES (1,'admin','$2b$10$9H0n9oAftJhRaKcaMXtirec/8vdpHmc7h4HM46ddj/Vpr4ILBKxaK','Super Admin','2025-11-14 06:15:48');
 
 UNLOCK TABLES;
 
@@ -235,6 +236,35 @@ BEGIN
     UPDATE news
     SET is_archived = 1
     WHERE id = p_id;
+END ;;
+DELIMITER ;
+
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_GetAdminProfile`(
+    IN p_admin_id INT
+)
+BEGIN
+    SELECT 
+        id,
+        username,
+        display_name,
+        DATE_FORMAT(date_created, '%b %d, %Y') AS date_created
+    FROM admins
+    WHERE id = p_admin_id;
+END ;;
+DELIMITER ;
+
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_UpdateAdminProfile`(
+    IN p_admin_id INT,
+    IN p_display_name VARCHAR(255)
+)
+BEGIN
+    UPDATE admins
+    SET display_name = p_display_name
+    WHERE id = p_admin_id;
+    
+    SELECT id, username, display_name FROM admins WHERE id = p_admin_id;
 END ;;
 DELIMITER ;
 
