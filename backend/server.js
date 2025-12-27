@@ -223,6 +223,26 @@ app.get('/api/audit-logs', verifyJWT, (req, res) => {
 // SERVE STATIC FILES - Place after all API routes
 // ============================================================
 
+app.get('/api/debug/news-archive-state', (req, res) => {
+    const sql = `SELECT id, title, is_archived FROM news ORDER BY id`;
+    db.query(sql, (err, results) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: 'Database error', error: err });
+        }
+        res.status(200).json({ success: true, news: results });
+    });
+});
+
+app.get('/api/debug/announcements-archive-state', (req, res) => {
+    const sql = `SELECT id, title, is_archived FROM announcements ORDER BY id`;
+    db.query(sql, (err, results) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: 'Database error', error: err });
+        }
+        res.status(200).json({ success: true, announcements: results });
+    });
+});
+
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
 // ============================================================

@@ -184,7 +184,11 @@ function initContentManagement() {
                     btn.className = "px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-sm bg-white text-green-800 transform scale-105";
                     panel.classList.remove('hidden');
                     
-                    if (tab === 'Archives') loadArchivedContent();
+                    if (tab === 'Archives') {
+                        loadArchivedContent();
+                        // Initialize archive subtabs to show announcements by default
+                        setTimeout(() => window.switchArchiveSubTab('announcements'), 100);
+                    }
                     else loadContentManagement();
                 } else {
                     // INACTIVE STATE (Gray Text)
@@ -246,19 +250,22 @@ function setupModalListeners(modalId, addBtnId, onAddClick) {
     // Open
     getEl(addBtnId)?.addEventListener('click', onAddClick);
     
-    // Close (Buttons & Backdrop)
+    // Close (Click X button)
     const close = () => modal.classList.add('hidden');
-    modal.querySelector('.fa-times')?.parentNode.addEventListener('click', close);
-    modal.querySelectorAll('button')[0].addEventListener('click', close); 
+    const closeBtn = modal.querySelector('.fa-times')?.parentNode;
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    
+    // Close (Click Cancel button)
+    const cancelBtn = Array.from(modal.querySelectorAll('button')).find(b => b.id.includes('cancel'));
+    if (cancelBtn) cancelBtn.addEventListener('click', close);
 }
 
 function openModal(modalId, title, editId = null) {
     const modal = getEl(modalId);
     modal.classList.remove('hidden');
-    // Find the title element (h3) and submit button
-    modal.querySelector('h3').textContent = title;
-    const btn = modal.querySelectorAll('button')[1];
-    btn.textContent = editId ? "Save Changes" : "Publish";
+    // Find the title element (h3)
+    const titleEl = modal.querySelector('h3');
+    if (titleEl) titleEl.textContent = title;
     
     // Store ID globally for submit handler
     window[modalId + 'EditId'] = editId; 
@@ -290,13 +297,31 @@ async function handleDataSubmit(type, body, modalId) {
 
 async function archiveItem(id, type) {
     if (!confirm(`Archive this item?`)) return;
+    console.log(`Attempting to archive ${type} ID: ${id}`);
     try {
         const res = await fetchWithAuth(`/api/${type}/${id}`, { method: 'DELETE' });
-        if (res && (await res.json()).success) {
-            await loadContentManagement();
-            if (window.refreshAuditLog) refreshAuditLog();
+        if (!res) {
+            alert('Error: Server error occurred');
+            console.error('Archive request failed - no response');
+            return;
         }
-    } catch (e) { alert('Network error'); }
+        const result = await res.json();
+        console.log(`Archive response for ${type} ID ${id}:`, result);
+        if (result.success) {
+            alert('Item archived successfully! It will no longer appear in the active list.');
+            // Reload content to update announcements and news lists (archived items will be filtered out)
+            await loadContentManagement();
+            // Also reload archived content in case user switches to archives tab
+            await loadArchivedContent();
+            // Refresh audit log if available
+            if (window.refreshAuditLog) refreshAuditLog();
+        } else {
+            alert('Error: ' + (result.message || 'Failed to archive item'));
+        }
+    } catch (e) { 
+        console.error('Archive error:', e);
+        alert('Network error: Failed to archive item'); 
+    }
 }
 
 
@@ -344,6 +369,11 @@ window.switchArchiveSubTab = function(type) {
     const btnNews = document.getElementById('subTabArchNews');
     const boxAnn = document.getElementById('containerArchivedAnn');
     const boxNews = document.getElementById('containerArchivedNews');
+
+    if (!btnAnn || !btnNews || !boxAnn || !boxNews) {
+        console.warn('Archive subtab elements not found');
+        return;
+    }
 
     if (type === 'announcements') {
         // Show Announcements, Hide News

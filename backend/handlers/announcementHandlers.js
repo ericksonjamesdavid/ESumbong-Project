@@ -37,39 +37,64 @@ const handleUpdateAnnouncement = (db, req, res) => {
 // Archive Announcement Handler
 const handleArchiveAnnouncement = (db, req, res) => {
     const { id } = req.params;
+    const adminId = req.admin?.id;
+    
+    if (!adminId) {
+        console.error('Archive announcement: No admin ID in request');
+        return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    
+    console.log(`[ARCHIVE] Starting archive for announcement ID: ${id}`);
     
     // First, get announcement details before archiving
-    db.query('SELECT title FROM announcements WHERE id = ?', [id], (selectErr, selectResult) => {
-        if (selectErr || !selectResult || selectResult.length === 0) {
+    db.query('SELECT id, title, is_archived FROM announcements WHERE id = ?', [id], (selectErr, selectResult) => {
+        if (selectErr) {
+            console.error('[ARCHIVE] Error fetching announcement:', selectErr);
+            return res.status(500).json({ success: false, message: 'Database error' });
+        }
+        if (!selectResult || selectResult.length === 0) {
+            console.error(`[ARCHIVE] Announcement ID ${id} not found`);
             return res.status(404).json({ success: false, message: 'Announcement not found' });
         }
         
         const title = selectResult[0].title;
+        const currentArchived = selectResult[0].is_archived;
+        console.log(`[ARCHIVE] Found announcement ID ${id}: "${title}", current is_archived: ${currentArchived}`);
+        
         const sql = `CALL sp_ArchiveAnnouncement(?)`;
         
         db.query(sql, [id], (err, result) => {
             if (err) {
-                console.error('Error archiving announcement:', err);
+                console.error('[ARCHIVE] Error calling sp_ArchiveAnnouncement:', err);
                 return res.status(500).json({ success: false, message: 'Database error' });
             }
             
-            logAuditAction(db, req.admin.id, 'Admin', 'ANNOUNCEMENT_ARCHIVED', 'announcements', id, `Archived announcement: "${title}".`);
-            
-            res.status(200).json({ success: true, message: 'Announcement archived' });
+            // Verify the archive was successful
+            db.query('SELECT is_archived FROM announcements WHERE id = ?', [id], (verifyErr, verifyResult) => {
+                if (verifyErr) {
+                    console.error('[ARCHIVE] Error verifying archive:', verifyErr);
+                } else {
+                    const newArchived = verifyResult[0]?.is_archived;
+                    console.log(`[ARCHIVE] Verification: Announcement ID ${id} is_archived is now: ${newArchived}`);
+                }
+                
+                logAuditAction(db, adminId, 'Admin', 'ANNOUNCEMENT_ARCHIVED', 'announcements', id, `Archived announcement: "${title}".`);
+                res.status(200).json({ success: true, message: 'Announcement archived' });
+            });
         });
     });
 };
 
 // Get All Announcements Handler (with optional archived filter)
 const handleGetAnnouncements = (db, req, res) => {
-    const archived = req.query.archived === 'true' ? 1 : 0;
+    const archived = req.query.archived === 'true';
     
     if (archived) {
         // Get archived announcements
-        const sql = `SELECT id, title, description, DATE_FORMAT(date_posted, '%b %d, %Y') AS date FROM announcements WHERE is_archived = 1 ORDER BY date_posted DESC`;
+        const sql = `SELECT id, title, description, is_archived, DATE_FORMAT(date_posted, '%b %d, %Y') AS date FROM announcements WHERE is_archived = 1 ORDER BY date_posted DESC`;
         db.query(sql, (err, results) => {
             if (err) {
-                console.error('Error fetching archived announcements:', err);
+                console.error('[GET] Error fetching archived announcements:', err);
                 return res.status(500).json({ success: false, message: 'Database error' });
             }
             res.status(200).json({ success: true, announcements: results });
@@ -79,7 +104,7 @@ const handleGetAnnouncements = (db, req, res) => {
         const sql = `CALL sp_GetAnnouncements()`;
         db.query(sql, (err, results) => {
             if (err) {
-                console.error('Error fetching announcements:', err);
+                console.error('[GET] Error fetching announcements:', err);
                 return res.status(500).json({ success: false, message: 'Database error' });
             }
             res.status(200).json({ success: true, announcements: results[0] });
