@@ -1,94 +1,38 @@
 /**
- * Admin Settings Controller
- * Handles profile management, password updates, and account handover.
- * Refactored for maintainability and DRY (Don't Repeat Yourself) principles.
+ * Settings Controller Module
+ * Connects HTML to UI utilities and backend services
+ * Orchestrates the flow of admin settings operations
  */
 
+// Import UI utilities
+import {
+  togglePassword,
+  toggleInputStatus,
+  setButtonLoading,
+  showPasswordError,
+  hidePasswordError,
+  setModalRuleStatus,
+  resetHandoverModal,
+  updateHandoverRulesBox
+} from '../utils/ui.js';
+
+// Import Admin Service
+import {
+  fetchAdminProfile,
+  updateAdminProfileAPI,
+  updatePasswordAPI,
+  verifyHandoverPinAPI,
+  submitHandoverAPI
+} from '../services/admin.service.js';
+
 // =============================================================================
-// 1. SHARED UTILITIES & UI HELPERS
+// INITIALIZATION
 // =============================================================================
 
 /**
- * Toggles the password input visibility and icon.
+ * Initializes the settings page
+ * Checks authentication and loads admin profile
  */
-function togglePassword(id, icon) {
-  const input = document.getElementById(id);
-  if (!input) return;
-
-  if (input.type === "password") {
-    input.type = "text";
-    icon.classList.replace("fa-eye-slash", "fa-eye");
-  } else {
-    input.type = "password";
-    icon.classList.replace("fa-eye", "fa-eye-slash");
-  }
-}
-
-/**
- * Shared Helper: Toggles Green (Success) vs Red (Error) rings on inputs.
- * @param {HTMLElement} element - The input element
- * @param {boolean} isValid - True for Green, False for Red
- */
-function toggleInputStatus(element, isValid) {
-  if (!element) return;
-
-  if (isValid) {
-    // SUCCESS: Green Ring + Green Border
-    element.classList.remove("focus:ring-red-500", "border-gray-200", "border-red-500");
-    element.classList.add("focus:ring-green-500", "border-green-500");
-  } else {
-    // ERROR: Red Ring + Gray Border
-    element.classList.remove("focus:ring-green-500", "border-green-500");
-    element.classList.add("focus:ring-red-500", "border-gray-200");
-  }
-}
-
-/**
- * Shared Helper: Manages Button Loading State
- */
-function setButtonLoading(btn, isLoading, originalText = "", loadingText = "Processing...") {
-  if (!btn) return;
-  if (isLoading) {
-    btn.disabled = true;
-    btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> ${loadingText}`;
-    btn.classList.add('opacity-75', 'cursor-not-allowed');
-  } else {
-    btn.disabled = false;
-    btn.innerText = originalText;
-    btn.classList.remove('opacity-75', 'cursor-not-allowed');
-  }
-}
-
-/**
- * Displays the main password error/success message.
- */
-function showPasswordError(msg, isSuccess = false) {
-  const passwordError = document.getElementById("passwordError");
-
-  if (passwordError) {
-    passwordError.className = ''; // Reset
-    passwordError.innerHTML = `<span class="block sm:inline">${msg}</span>`;
-    passwordError.classList.remove("hidden");
-
-    if (isSuccess) {
-      passwordError.classList.add('p-3', 'rounded', 'font-medium', 'bg-green-100', 'text-green-800', 'border', 'border-green-400');
-    } else {
-      passwordError.classList.add('p-3', 'rounded', 'font-medium', 'bg-red-100', 'text-red-800', 'border', 'border-red-400');
-    }
-  }
-}
-
-function hidePasswordError() {
-  const passwordError = document.getElementById("passwordError");
-  if (passwordError) {
-    passwordError.classList.add("hidden");
-  }
-}
-
-// =============================================================================
-// 2. INITIALIZATION & PROFILE MANAGEMENT
-// =============================================================================
-
 function initSettings() {
   const token = localStorage.getItem('adminToken');
   if (!token) {
@@ -99,6 +43,9 @@ function initSettings() {
   loadAdminProfile();
 }
 
+/**
+ * Loads and displays the admin's profile
+ */
 async function loadAdminProfile() {
   const cardName = document.getElementById('displayProfileName');
   const savedName = localStorage.getItem('adminDisplayName');
@@ -111,74 +58,48 @@ async function loadAdminProfile() {
     }
   };
 
-  try {
-    const response = await fetchWithAuth('/api/admin/profile', { method: 'GET' });
+  const profile = await fetchAdminProfile();
 
-    if (!response || !response.ok) {
-      setFallbackUI();
-      return;
+  if (profile) {
+    const displayName = profile.display_name || 'Super Admin';
+    if (cardName) {
+      cardName.textContent = displayName;
+      cardName.classList.remove('animate-pulse');
     }
-
-    const result = await response.json();
-
-    if (result.success && result.profile) {
-      const displayName = result.profile.display_name || 'Super Admin';
-      if (cardName) {
-        cardName.textContent = displayName;
-        cardName.classList.remove('animate-pulse');
-      }
-      localStorage.setItem('adminDisplayName', displayName);
-    }
-  } catch (error) {
-    console.error('Error loading admin profile:', error);
+    localStorage.setItem('adminDisplayName', displayName);
+  } else {
     setFallbackUI();
   }
 }
 
 /**
- * Updates the admin's display name.
- * @param {string} displayName - The new name to save
+ * Updates the admin's display name
+ * @param {string} displayName - The new display name
+ * @returns {Promise<boolean>} True if successful
  */
 async function updateAdminProfile(displayName) {
-  try {
-    const response = await fetchWithAuth('/api/admin/profile', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ displayName })
-    });
+  const success = await updateAdminProfileAPI(displayName);
 
-    if (!response) {
-      alert('Server error occurred');
-      return false;
-    }
+  if (success) {
+    // Update the Identity Card UI immediately
+    const cardName = document.getElementById('displayProfileName');
+    if (cardName) cardName.textContent = displayName;
 
-    const result = await response.json();
-
-    if (result.success) {
-      // Update the Identity Card UI immediately
-      const cardName = document.getElementById('displayProfileName');
-      if (cardName) cardName.textContent = displayName;
-
-      // Update Local Storage
-      localStorage.setItem('adminDisplayName', displayName);
-      return true;
-    } else {
-      alert('Error: ' + result.message);
-      return false;
-    }
-  } catch (error) {
-    console.error('Error updating admin profile:', error);
-    alert('Network error: Failed to update profile');
+    // Update Local Storage
+    localStorage.setItem('adminDisplayName', displayName);
+    return true;
+  } else {
+    alert('Error updating profile');
     return false;
   }
 }
 
 // =============================================================================
-// 3. PERSONAL SECURITY (PASSWORD UPDATE)
+// PERSONAL SECURITY (PASSWORD UPDATE)
 // =============================================================================
 
 /**
- * Handles the "Update Credentials" form submission.
+ * Handles the "Update Credentials" form submission
  */
 async function updatePassword() {
   const btn = document.querySelector('button[onclick="updatePassword()"]');
@@ -213,33 +134,16 @@ async function updatePassword() {
 
   try {
     const startTime = Date.now();
-    const response = await fetchWithAuth('/api/admin/update-password', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        currentPassword: currentVal,
-        newPassword: newPassVal,
-        confirmPassword: confirmVal
-      })
-    });
-
+    const result = await updatePasswordAPI(currentVal, newPassVal, confirmVal);
     const elapsedTime = Date.now() - startTime;
+    
     if (elapsedTime < 600) await new Promise(r => setTimeout(r, 600 - elapsedTime));
 
-    if (!response) {
-      setButtonLoading(btn, false, originalText);
-      return;
-    }
-
-    let result = null;
-    try { result = await response.json(); } catch (e) { }
-
-    if (response.ok && result && result.success) {
+    if (result.success) {
       handlePasswordUpdateSuccess(btn, originalText, shouldLogout);
     } else {
-      handlePasswordUpdateError(btn, originalText, response, result, currentInput);
+      handlePasswordUpdateError(btn, originalText, result, currentInput);
     }
-
   } catch (error) {
     console.error('Error updating password:', error);
     showPasswordError(error.message || "An unexpected error occurred.");
@@ -247,7 +151,12 @@ async function updatePassword() {
   }
 }
 
-// Helper: Handle Success
+/**
+ * Handles successful password update
+ * @param {HTMLElement} btn - The submit button
+ * @param {string} originalText - Original button text
+ * @param {boolean} shouldLogout - Whether to logout after update
+ */
 function handlePasswordUpdateSuccess(btn, originalText, shouldLogout) {
   const inputs = [
     document.getElementById("currentPass"),
@@ -258,7 +167,7 @@ function handlePasswordUpdateSuccess(btn, originalText, shouldLogout) {
   inputs.forEach(el => {
     if (el) {
       el.value = "";
-      // Reset rings to default (remove both green/red)
+      // Reset rings to default
       el.classList.remove("focus:ring-green-500", "border-green-500", "focus:ring-red-500", "border-red-500");
       el.classList.add("focus:ring-green-500", "border-gray-200");
     }
@@ -278,24 +187,16 @@ function handlePasswordUpdateSuccess(btn, originalText, shouldLogout) {
   }
 }
 
-// Helper: Handle Error
-function handlePasswordUpdateError(btn, originalText, response, result, currentInput) {
-  let errorMsg = "Failed to update password";
-  let isCurrentPassError = false;
-
-  if (result && result.msg) {
-    errorMsg = result.msg;
-    if (errorMsg.toLowerCase().includes("current password") || errorMsg.toLowerCase().includes("incorrect")) {
-      isCurrentPassError = true;
-    }
-  } else if (response.status === 401 || response.status === 403) {
-    errorMsg = "Incorrect current password.";
-    isCurrentPassError = true;
-  } else if (response.status === 404) {
-    errorMsg = "User not found.";
-  } else if (response.status >= 500) {
-    errorMsg = "Server error.";
-  }
+/**
+ * Handles password update error
+ * @param {HTMLElement} btn - The submit button
+ * @param {string} originalText - Original button text
+ * @param {Object} result - API response
+ * @param {HTMLElement} currentInput - Current password input element
+ */
+function handlePasswordUpdateError(btn, originalText, result, currentInput) {
+  let errorMsg = result.message || "Failed to update password";
+  const isCurrentPassError = result.isCurrentPassError || false;
 
   if (isCurrentPassError && currentInput) {
     toggleInputStatus(currentInput, false); // Turn Red
@@ -308,9 +209,12 @@ function handlePasswordUpdateError(btn, originalText, response, result, currentI
 }
 
 // =============================================================================
-// 4. ACCOUNT HANDOVER LOGIC (PIN & TRANSFER)
+// ACCOUNT HANDOVER - PIN VERIFICATION
 // =============================================================================
 
+/**
+ * Opens the PIN verification modal
+ */
 function confirmHandover() {
   document.getElementById('handoverPinInput').value = '';
   document.getElementById('handoverPinError').classList.add('hidden');
@@ -321,6 +225,9 @@ function confirmHandover() {
   }
 }
 
+/**
+ * Verifies the handover PIN
+ */
 async function verifyHandoverPin() {
   const pin = document.getElementById('handoverPinInput').value;
   const errorMsg = document.getElementById('handoverPinError');
@@ -340,22 +247,16 @@ async function verifyHandoverPin() {
 
   try {
     const startTime = Date.now();
-    const response = await fetch('/api/admin/verify-pin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'admin', pin: pin })
-    });
-
+    const result = await verifyHandoverPinAPI(pin);
     const elapsedTime = Date.now() - startTime;
+    
     if (elapsedTime < 600) await new Promise(resolve => setTimeout(resolve, 600 - elapsedTime));
-
-    const result = await response.json();
 
     if (result.success) {
       closeHandoverPinModal();
       openHandoverModal();
     } else {
-      errorMsg.textContent = result.message || "Invalid PIN.";
+      errorMsg.textContent = result.message;
       errorMsg.classList.remove('hidden');
       setButtonLoading(btn, false, originalText);
     }
@@ -367,6 +268,9 @@ async function verifyHandoverPin() {
   }
 }
 
+/**
+ * Closes the PIN verification modal
+ */
 function closeHandoverPinModal() {
   const pinModal = document.getElementById('handoverPinModal');
   if (pinModal) {
@@ -384,49 +288,30 @@ function closeHandoverPinModal() {
   }
 }
 
+// =============================================================================
+// ACCOUNT HANDOVER - MODAL MANAGEMENT
+// =============================================================================
+
+/**
+ * Opens the handover modal after PIN verification
+ */
 function openHandoverModal() {
-  const inputIds = ['handoverFirstName', 'handoverLastName', 'handoverPass', 'handoverConfirm'];
-
-  // Reset Inputs
-  inputIds.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.value = '';
-      toggleInputStatus(el, false); // Set to default Red/Gray state
-    }
-  });
-
-  document.getElementById('handoverError').classList.add('hidden');
-
-  // Reset Rules Box
-  const rulesList = document.getElementById('handoverRules');
-  if (rulesList) {
-    rulesList.classList.add('hidden');
-    rulesList.classList.remove("bg-green-50", "border-green-100", "bg-red-50", "border-red-100");
-    rulesList.classList.add("bg-gray-50", "border-gray-200");
-  }
-
-  // Reset Rule Text
-  const ruleIds = ["h-rule-upper", "h-rule-lower", "h-rule-number", "h-rule-symbol"];
-  ruleIds.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.classList.remove("text-green-600", "font-bold", "text-red-500");
-      el.classList.add("text-gray-500");
-      const icon = el.querySelector("i");
-      if (icon) icon.classList.remove("text-green-600");
-    }
-  });
-
+  resetHandoverModal();
   const modal = document.getElementById('handoverModal');
   if (modal) modal.classList.remove('hidden');
 }
 
+/**
+ * Closes the handover modal
+ */
 function closeHandoverModal() {
   const modal = document.getElementById('handoverModal');
   if (modal) modal.classList.add('hidden');
 }
 
+/**
+ * Submits the account handover
+ */
 async function submitHandover() {
   const fName = document.getElementById('handoverFirstName').value.trim();
   const lName = document.getElementById('handoverLastName').value.trim();
@@ -483,17 +368,10 @@ async function submitHandover() {
 
   try {
     const startTime = Date.now();
-    const response = await fetchWithAuth('/api/admin/handover', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ newDisplayName: fullName, newPassword: pass })
-    });
-
+    const result = await submitHandoverAPI(fullName, pass);
     const elapsedTime = Date.now() - startTime;
+    
     if (elapsedTime < 600) await new Promise(r => setTimeout(r, 600 - elapsedTime));
-
-    if (!response) throw new Error("Server error");
-    const result = await response.json();
 
     if (result.success) {
       localStorage.setItem('adminDisplayName', fullName);
@@ -512,9 +390,12 @@ async function submitHandover() {
 }
 
 // =============================================================================
-// 5. EVENT LISTENERS (REAL-TIME VALIDATION)
+// EVENT LISTENERS - REAL-TIME VALIDATION
 // =============================================================================
 
+/**
+ * Sets up listeners for password update form real-time validation
+ */
 function setupPersonalSecurityListeners() {
   const newPassInput = document.getElementById("newPass");
   const confirmPassInput = document.getElementById("confirmPass");
@@ -588,6 +469,9 @@ function setupPersonalSecurityListeners() {
   }
 }
 
+/**
+ * Sets up listeners for handover modal real-time validation
+ */
 function setupHandoverListeners() {
   const hFName = document.getElementById("handoverFirstName");
   const hLName = document.getElementById("handoverLastName");
@@ -600,22 +484,6 @@ function setupHandoverListeners() {
     lower: document.getElementById("h-rule-lower"),
     number: document.getElementById("h-rule-number"),
     symbol: document.getElementById("h-rule-symbol")
-  };
-
-  // Helper for text rules in modal
-  const setModalRuleStatus = (element, isValid) => {
-    if (!element) return false;
-    const icon = element.querySelector("i");
-    if (isValid) {
-      element.classList.remove("text-gray-500", "text-red-500");
-      element.classList.add("text-green-600", "font-bold");
-      if (icon) icon.classList.add("text-green-600");
-    } else {
-      element.classList.remove("text-green-600", "font-bold");
-      element.classList.add("text-red-500");
-      if (icon) icon.classList.remove("text-green-600");
-    }
-    return isValid;
   };
 
   const nameRegex = /^[a-zA-Z\s\-]+$/;
@@ -649,13 +517,7 @@ function setupHandoverListeners() {
       const allValid = isUpper && isLower && isNumber && isSymbol && isLength;
 
       // Update Box Background
-      hRulesList.classList.remove("bg-red-50", "border-red-100", "bg-gray-50", "border-gray-200", "bg-green-50", "border-green-100");
-      if (allValid) {
-        hRulesList.classList.add("bg-green-50", "border-green-100");
-      } else {
-        hRulesList.classList.add("bg-red-50", "border-red-100");
-      }
-
+      updateHandoverRulesBox(allValid);
       toggleInputStatus(hPass, allValid);
 
       if (hConfirm && hConfirm.value) {
@@ -674,7 +536,7 @@ function setupHandoverListeners() {
 }
 
 // =============================================================================
-// 6. BOOTSTRAP
+// BOOTSTRAP
 // =============================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -687,3 +549,36 @@ document.addEventListener('DOMContentLoaded', () => {
   setupPersonalSecurityListeners();
   setupHandoverListeners();
 });
+
+// Export functions for global access
+export {
+  initSettings,
+  loadAdminProfile,
+  updateAdminProfile,
+  updatePassword,
+  handlePasswordUpdateSuccess,
+  handlePasswordUpdateError,
+  confirmHandover,
+  verifyHandoverPin,
+  closeHandoverPinModal,
+  openHandoverModal,
+  closeHandoverModal,
+  submitHandover,
+  setupPersonalSecurityListeners,
+  setupHandoverListeners
+};
+
+// =============================================================================
+// EXPOSE TO WINDOW (Required for HTML onclick="" attributes with ES6 modules)
+// =============================================================================
+window.initSettings = initSettings;
+window.loadAdminProfile = loadAdminProfile;
+window.updateAdminProfile = updateAdminProfile;
+window.updatePassword = updatePassword;
+window.confirmHandover = confirmHandover;
+window.verifyHandoverPin = verifyHandoverPin;
+window.closeHandoverPinModal = closeHandoverPinModal;
+window.openHandoverModal = openHandoverModal;
+window.closeHandoverModal = closeHandoverModal;
+window.submitHandover = submitHandover;
+window.togglePassword = togglePassword; // Imported from UI but needs to be global for HTML

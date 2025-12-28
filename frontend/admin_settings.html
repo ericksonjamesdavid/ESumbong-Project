@@ -12,82 +12,6 @@
 
 <body class="flex flex-col min-h-screen">
 
-  <!-- Header -->
-  <header class="fixed top-0 w-full bg-green-900 text-white shadow-md py-4 px-6 flex items-center justify-between z-50">
-    <div class="flex items-center gap-4">
-      <button id="sidebarToggle" class="text-white focus:outline-none hover:text-green-200">
-        <i class="fa-solid fa-bars text-2xl transition-all duration-300"></i>
-      </button>
-
-      <img src="Images/Logo.png" alt="Barangay Logo" class="w-12 h-12 rounded-full border-2 border-white">
-      <h1 class="text-2xl md:text-3xl font-bold">Account Settings</h1>
-    </div>
-  </header>
-
-  <!-- Sidebar -->
-  <aside id="sidebar"
-    class="fixed top-0 left-0 h-full w-56 bg-green-800 text-white shadow-2xl transform -translate-x-full transition-transform duration-300 z-50 flex flex-col justify-between rounded-r-2xl">
-
-    <!-- Hide Side Bar -->
-    <button id="hideSidebar" class="absolute top-4 right-4 text-white shadow-2xl hover:text-green-300">
-      <i class="fa-solid fa-arrow-left text-xl"></i>
-    </button>
-
-    <!-- Menu -->
-    <nav class="flex flex-col items-center text-green-300 space-y-3 pt-24">
-      <h2 class="text-xl font-bold mb-4 text-gray-100 tracking-wide border-b border-green-700 pb-2 w-4/5 text-center">
-        Menu</h2>
-
-      <button
-        onclick="localStorage.setItem('defaultSection','sectionAnnouncements');location.href='admin_dashboard.html';"
-        class="w-4/5 flex items-center justify-left gap-2 px-4 py-2 rounded-lg hover:bg-green-700 hover:scale-105 transition">
-        <i class="fa-solid fa-bullhorn"></i>
-        <span>Announcements</span>
-      </button>
-
-      <button onclick="localStorage.setItem('defaultSection','sectionCharts');location.href='admin_dashboard.html';"
-        class="w-4/5 flex items-center justify-left gap-2 px-4 py-2 rounded-lg hover:bg-green-700 hover:scale-105 transition">
-        <i class="fa-solid fa-chart-column"></i>
-        <span>Charts</span>
-      </button>
-
-      <button onclick="localStorage.setItem('defaultSection','sectionReports');location.href='admin_dashboard.html';"
-        class="w-4/5 flex items-center justify-left gap-2 px-4 py-2 rounded-lg hover:bg-green-700 hover:scale-105 transition">
-        <i class="fa-solid fa-file-lines"></i>
-        <span>Reports</span>
-      </button>
-
-      <button onclick="localStorage.setItem('defaultSection','sectionAuditLog');location.href='admin_dashboard.html';"
-        class="w-4/5 flex items-center justify-left gap-2 px-4 py-2 rounded-lg hover:bg-green-700 hover:scale-105 transition">
-        <i class="fa-solid fa-file-lines"></i>
-        <span>Audit Log</span>
-      </button>
-
-      <button
-        onclick="localStorage.setItem('defaultSection','sectionSuggestions');location.href='admin_dashboard.html';"
-        class="w-4/5 flex items-center justify-left gap-2 px-4 py-2 rounded-lg hover:bg-green-700 hover:scale-105 transition">
-        <i class="fa-solid fa-lightbulb"></i>
-        <span>Suggestions</span>
-      </button>
-    </nav>
-
-    <div class="p-4 flex flex-col items-center space-y-3 pb-8">
-      <button class="w-4/5 flex items-center text-green-500 justify-center gap-2 py-2 rounded-lg
-       opacity-70 cursor-not-allowed
-       transition duration-200">
-        <i class="fa-solid fa-gear"></i>
-        <span>Account Settings</span>
-      </button>
-
-      <button id="logoutBtn"
-        class="w-4/5 flex items-center justify-center gap-2 bg-white text-green-900 font-semibold py-2 rounded-lg hover:bg-green-200 hover:scale-105 transition">
-        <i class="fa-solid fa-right-from-bracket"></i>
-        <span>Logout</span>
-      </button>
-    </div>
-
-  </aside>
-
   <!-- Account Settings Section -->
   <main class="flex-grow pt-24 pb-12 px-4 md:px-8 bg-gray-50">
 
@@ -394,9 +318,15 @@
     </div>
   </div>
 
-  <script src="js/admin_modules/sidebar.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/admin_setting.js"></script>
+  <script src="js/core/auth.js"></script>
+  <script src="js/components/sidebar.js"></script>
+  <script src="js/utils/headerLoader.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      loadHeaderSidebar('Account Settings');
+    });
+  </script>
+  <script type="module" src="js/controllers/settings.js"></script>
 
 </body>
 

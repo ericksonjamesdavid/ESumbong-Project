@@ -1,7 +1,7 @@
 // =======================
-// MAIN SCRIPT - MODULAR
+// MAIN SCRIPT - PUBLIC SITE
 // =======================
-// This file imports and initializes all modules
+// This file imports and initializes all public site modules
 
 import { initAnimationObserver, initHomePageSetup } from './modules/animations.js';
 import { initAnnouncementsAndNews } from './modules/announcementsNews.js';

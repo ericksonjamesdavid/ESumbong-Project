@@ -51,7 +51,7 @@ const handleReportSubmission = (db, req, res) => {
         
         // Log the report submission to audit_logs
         const displayCategory = storedCategory || 'Other';
-        const auditDescription = `New report submitted: ${String(displayCategory).charAt(0).toUpperCase() + String(displayCategory).slice(1)} (${trackingId}).`;
+        const auditDescription = `New report submitted: ${String(displayCategory).charAt(0).toUpperCase() + String(displayCategory).slice(1)} "${trackingId}".`;
         logAuditAction(db, null, 'Resident', 'REPORT_SUBMITTED', 'reports', null, auditDescription);
         
         res.status(200).json({ success: true, message: 'Report submitted!', trackingId: trackingId });
@@ -97,7 +97,7 @@ const handleUpdateReportStatus = (db, req, res) => {
         }
 
         // Log report status change to audit_logs
-        logAuditAction(db, null, 'Admin', 'REPORT_STATUS_CHANGED', 'reports', trackingId, `Updated report ${trackingId} status to '${status}'.`);
+        logAuditAction(db, null, 'Admin', 'REPORT_STATUS_CHANGED', 'reports', trackingId, `Updated report ${trackingId} status to "${status}".`);
 
         res.status(200).json({ success: true, message: 'Report status updated' });
     });

@@ -1,42 +1,124 @@
-// =======================
-// CONTENT MANAGEMENT (Announcements & News)
-// =======================
+/**
+ * Content Controller
+ * Handles News, Announcements, Archive, Modals, and Character Counters
+ */
 
-// Helper: Shorthand for document.getElementById
-const getEl = (id) => document.getElementById(id);
+import { ContentService } from '../services/content.service.js';
 
-async function loadContentManagement() {
-    try {
-        const [newsRes, annRes] = await Promise.all([
-            fetch('/api/news'),
-            fetch('/api/announcements')
-        ]);
-        const newsData = await newsRes.json();
-        const annData = await annRes.json();
+export async function initContent() {
+    // Tab Switching Logic
+    const tabs = ['Announcements', 'News', 'Archives'];
+    tabs.forEach(tab => {
+        const btn = document.getElementById(`tab${tab}`);
+        if(btn) btn.onclick = () => switchTab(tab);
+    });
 
-        if (annData.success) renderAnnouncementList(annData.announcements);
-        if (newsData.success) renderNewsList(newsData.news);
+    // Setup Modals
+    setupModalListeners('announcementModal', 'addAnnouncementBtn', () => {
+        openModal('announcementModal', 'New Announcement');
+        document.getElementById('announcementTitle').value = '';
+        document.getElementById('announcementDescription').value = '';
+        forceUpdateCounters(['announcementTitle', 'announcementDescription']);
+    });
 
-        initCounters(); 
+    setupModalListeners('newsModal', 'addNewsBtn', () => {
+        openModal('newsModal', 'New News Article');
+        document.getElementById('newsTitle').value = '';
+        document.getElementById('newsDescription').value = '';
+        document.getElementById('newsImage').value = '';
+        document.getElementById('newsLink').value = '';
+        forceUpdateCounters(['newsTitle', 'newsDescription']);
+    });
 
-    } catch (error) { console.error('Error loading content:', error); }
+    // Upload Buttons
+    const uploadAnnouncementBtn = document.getElementById('uploadAnnouncementBtn');
+    if (uploadAnnouncementBtn) {
+        uploadAnnouncementBtn.addEventListener('click', () => {
+            const title = document.getElementById('announcementTitle').value.trim();
+            const description = document.getElementById('announcementDescription').value.trim();
+            if (!title || !description) return alert('Enter title and description.');
+            handleDataSubmit('announcements', { title, description }, 'announcementModal');
+        });
+    }
+
+    const uploadNewsBtn = document.getElementById('uploadNewsBtn');
+    if (uploadNewsBtn) {
+        uploadNewsBtn.addEventListener('click', () => {
+            const title = document.getElementById('newsTitle').value.trim();
+            const description = document.getElementById('newsDescription').value.trim();
+            const image = document.getElementById('newsImage').value.trim();
+            const link = document.getElementById('newsLink').value.trim();
+            if (!title || !description || !image) return alert('Fill required fields.');
+            handleDataSubmit('news', { title, description, image, link }, 'newsModal');
+        });
+    }
+
+    // Initialize counters
+    initCounters();
+
+    // Initial Load
+    await loadActiveContent();
 }
 
-// --- Generic Render Helper ---
-function renderList(items, containerId, emptyMsg, createCardFn) {
-    const container = getEl(containerId);
+function switchTab(activeTab) {
+    ['Announcements', 'News', 'Archives'].forEach(tab => {
+        const btn = document.getElementById(`tab${tab}`);
+        const panel = document.getElementById(`panel${tab}`);
+        
+        if (btn && panel) {
+            if (tab === activeTab) {
+                btn.className = "px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-sm bg-white text-green-800 transform scale-105";
+                panel.classList.remove('hidden');
+                
+                if (tab === 'Archives') {
+                    loadArchivedContent();
+                    setTimeout(() => window.switchArchiveSubTab('announcements'), 100);
+                } else {
+                    loadActiveContent();
+                }
+            } else {
+                btn.className = "px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-green-700 hover:bg-gray-200 transition-all";
+                panel.classList.add('hidden');
+            }
+        }
+    });
+}
+
+async function loadActiveContent() {
+    try {
+        const [news, anns] = await Promise.all([
+            ContentService.getNews(false),
+            ContentService.getAnnouncements(false)
+        ]);
+        if(anns.success) renderAnnouncementList(anns.announcements);
+        if(news.success) renderNewsList(news.news);
+    } catch (e) {
+        console.error('Error loading active content:', e);
+    }
+}
+
+async function loadArchivedContent() {
+    try {
+        const [news, anns] = await Promise.all([
+            ContentService.getNews(true),
+            ContentService.getAnnouncements(true)
+        ]);
+        if(anns.success) renderArchivedAnnouncements(anns.announcements);
+        if(news.success) renderArchivedNews(news.news);
+    } catch (e) {
+        console.error('Error loading archived content:', e);
+    }
+}
+
+function renderAnnouncementList(items) {
+    const container = document.getElementById('announcementList');
     if (!container) return;
     container.innerHTML = '';
     if (items.length === 0) {
-        container.innerHTML = `<p class="text-center text-gray-500 py-10">${emptyMsg}</p>`;
+        container.innerHTML = `<p class="text-center text-gray-500 py-10">No announcements yet.</p>`;
         return;
     }
-    items.forEach(item => container.appendChild(createCardFn(item)));
-}
-
-// --- Render Announcements ---
-function renderAnnouncementList(items) {
-    renderList(items, 'announcementList', 'No announcements yet.', (item) => {
+    items.forEach(item => {
         const el = document.createElement('div');
         el.className = "bg-white p-4 rounded-lg border border-gray-200 hover:shadow-md transition";
         el.innerHTML = `
@@ -51,23 +133,27 @@ function renderAnnouncementList(items) {
             <p class="text-sm text-gray-600 line-clamp-2">${item.description}</p>
         `;
 
-        // Edit Action
         el.querySelector('.edit-btn').addEventListener('click', () => {
             openModal('announcementModal', 'Edit Announcement', item.id);
-            getEl('announcementTitle').value = item.title;
-            getEl('announcementDescription').value = item.description;
+            document.getElementById('announcementTitle').value = item.title;
+            document.getElementById('announcementDescription').value = item.description;
             forceUpdateCounters(['announcementTitle', 'announcementDescription']);
         });
 
-        // Archive Action (changed from Delete)
         el.querySelector('.delete-btn').addEventListener('click', () => archiveItem(item.id, 'announcements'));
-        return el;
+        container.appendChild(el);
     });
 }
 
-// --- Render News ---
 function renderNewsList(items) {
-    renderList(items, 'newsList', 'No news articles yet.', (item) => {
+    const container = document.getElementById('newsList');
+    if (!container) return;
+    container.innerHTML = '';
+    if (items.length === 0) {
+        container.innerHTML = `<p class="text-center text-gray-500 py-10">No news articles yet.</p>`;
+        return;
+    }
+    items.forEach(item => {
         const el = document.createElement('div');
         el.className = "bg-white p-4 rounded-lg border border-gray-200 flex gap-4 hover:shadow-md transition";
         el.innerHTML = `
@@ -93,37 +179,20 @@ function renderNewsList(items) {
 
         el.querySelector('.edit-btn').addEventListener('click', () => {
             openModal('newsModal', 'Edit News Article', item.id);
-            getEl('newsTitle').value = item.title;
-            getEl('newsDescription').value = item.description;
-            getEl('newsImage').value = item.imageUrl;
-            getEl('newsLink').value = item.linkUrl;
+            document.getElementById('newsTitle').value = item.title;
+            document.getElementById('newsDescription').value = item.description;
+            document.getElementById('newsImage').value = item.imageUrl;
+            document.getElementById('newsLink').value = item.linkUrl;
             forceUpdateCounters(['newsTitle', 'newsDescription']);
         });
 
         el.querySelector('.delete-btn').addEventListener('click', () => archiveItem(item.id, 'news'));
-        return el;
+        container.appendChild(el);
     });
 }
 
-// --- Load Archived Content ---
-async function loadArchivedContent() {
-    try {
-        const [newsRes, annRes] = await Promise.all([
-            fetch('/api/news?archived=true'),
-            fetch('/api/announcements?archived=true')
-        ]);
-        const newsData = await newsRes.json();
-        const annData = await annRes.json();
-
-        if (annData.success) renderArchivedAnnouncements(annData.announcements);
-        if (newsData.success) renderArchivedNews(newsData.news);
-
-    } catch (error) { console.error('Error loading archived content:', error); }
-}
-
-// --- Render Archived Announcements ---
 function renderArchivedAnnouncements(items) {
-    const container = getEl('archivedAnnList');
+    const container = document.getElementById('archivedAnnList');
     if (!container) return;
     container.innerHTML = '';
     if (items.length === 0) {
@@ -133,9 +202,8 @@ function renderArchivedAnnouncements(items) {
     items.forEach(item => container.appendChild(renderArchiveCard(item, 'announcements')));
 }
 
-// --- Render Archived News ---
 function renderArchivedNews(items) {
-    const container = getEl('archivedNewsList');
+    const container = document.getElementById('archivedNewsList');
     if (!container) return;
     container.innerHTML = '';
     if (items.length === 0) {
@@ -145,7 +213,6 @@ function renderArchivedNews(items) {
     items.forEach(item => container.appendChild(renderArchiveCard(item, 'news')));
 }
 
-// --- Render Archive Card ---
 function renderArchiveCard(item, type) {
     const el = document.createElement('div');
     el.className = "bg-white p-4 rounded-lg border border-gray-200 opacity-75 hover:opacity-100 transition hover:shadow-sm";
@@ -169,106 +236,37 @@ function renderArchiveCard(item, type) {
     return el;
 }
 
-// --- Modal & Form Logic ---
-function initContentManagement() {
-    // Tab Switching
-    const tabs = ['Announcements', 'News', 'Archives'];
-    const switchTab = (activeTab) => {
-        tabs.forEach(tab => {
-            const btn = getEl(`tab${tab}`);
-            const panel = getEl(`panel${tab}`);
-            
-            if (btn && panel) {
-                if (tab === activeTab) {
-                    // ACTIVE STATE (White Card)
-                    btn.className = "px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-sm bg-white text-green-800 transform scale-105";
-                    panel.classList.remove('hidden');
-                    
-                    if (tab === 'Archives') {
-                        loadArchivedContent();
-                        // Initialize archive subtabs to show announcements by default
-                        setTimeout(() => window.switchArchiveSubTab('announcements'), 100);
-                    }
-                    else loadContentManagement();
-                } else {
-                    // INACTIVE STATE (Gray Text)
-                    btn.className = "px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-green-700 hover:bg-gray-200 transition-all";
-                    panel.classList.add('hidden');
-                }
-            }
-        });
-    };
-    if(getEl('tabAnnouncements')) {
-        getEl('tabAnnouncements').onclick = () => switchTab('Announcements');
-        getEl('tabNews').onclick = () => switchTab('News');
-        getEl('tabArchives').onclick = () => switchTab('Archives');
-    }
-
-    // Setup Modals (Announcements)
-    setupModalListeners('announcementModal', 'addAnnouncementBtn', () => {
-        openModal('announcementModal', 'New Announcement');
-        getEl('announcementTitle').value = '';
-        getEl('announcementDescription').value = '';
-        forceUpdateCounters(['announcementTitle', 'announcementDescription']);
-    });
-
-    getEl('uploadAnnouncementBtn')?.addEventListener('click', () => {
-        const title = getEl('announcementTitle').value.trim();
-        const description = getEl('announcementDescription').value.trim();
-        if (!title || !description) return alert('Enter title and description.');
-        handleDataSubmit('announcements', { title, description }, 'announcementModal');
-    });
-
-    // Setup Modals (News)
-    setupModalListeners('newsModal', 'addNewsBtn', () => {
-        openModal('newsModal', 'New News Article');
-        getEl('newsTitle').value = '';
-        getEl('newsDescription').value = '';
-        getEl('newsImage').value = '';
-        getEl('newsLink').value = '';
-        forceUpdateCounters(['newsTitle', 'newsDescription']);
-    });
-
-    getEl('uploadNewsBtn')?.addEventListener('click', () => {
-        const title = getEl('newsTitle').value.trim();
-        const description = getEl('newsDescription').value.trim();
-        const image = getEl('newsImage').value.trim();
-        const link = getEl('newsLink').value.trim();
-        if (!title || !description || !image) return alert('Fill required fields.');
-        handleDataSubmit('news', { title, description, image, link }, 'newsModal');
-    });
-
-    initCounters();
-}
-
-// --- Shared Helpers ---
+// ============= MODAL HELPERS =============
 
 function setupModalListeners(modalId, addBtnId, onAddClick) {
-    const modal = getEl(modalId);
+    const modal = document.getElementById(modalId);
     if (!modal) return;
     
-    // Open
-    getEl(addBtnId)?.addEventListener('click', onAddClick);
+    const addBtn = document.getElementById(addBtnId);
+    if (addBtn) addBtn.addEventListener('click', onAddClick);
     
-    // Close (Click X button)
-    const close = () => modal.classList.add('hidden');
-    const closeBtn = modal.querySelector('.fa-times')?.parentNode;
-    if (closeBtn) closeBtn.addEventListener('click', close);
+    // Close modal with X button (first button in header)
+    const closeIconBtn = modal.querySelector('h3 + button');
+    if (closeIconBtn) {
+        closeIconBtn.addEventListener('click', () => modal.classList.add('hidden'));
+    }
     
-    // Close (Click Cancel button)
-    const cancelBtn = Array.from(modal.querySelectorAll('button')).find(b => b.id.includes('cancel'));
-    if (cancelBtn) cancelBtn.addEventListener('click', close);
+    // Close modal with Cancel button (first button in footer)
+    const cancelBtn = modal.querySelector('.flex.justify-end.gap-3 > button:first-child');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => modal.classList.add('hidden'));
+    }
 }
 
 function openModal(modalId, title, editId = null) {
-    const modal = getEl(modalId);
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
     modal.classList.remove('hidden');
-    // Find the title element (h3)
+    
     const titleEl = modal.querySelector('h3');
     if (titleEl) titleEl.textContent = title;
     
-    // Store ID globally for submit handler
-    window[modalId + 'EditId'] = editId; 
+    window[modalId + 'EditId'] = editId;
 }
 
 async function handleDataSubmit(type, body, modalId) {
@@ -282,51 +280,56 @@ async function handleDataSubmit(type, body, modalId) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         });
-        if (!res) return;
+        
+        if (!res) {
+            alert('Server error occurred');
+            return;
+        }
         const result = await res.json();
         
         if (result.success) {
-            getEl(modalId).classList.add('hidden');
-            await loadContentManagement();
-            if (window.refreshAuditLog) refreshAuditLog();
+            document.getElementById(modalId).classList.add('hidden');
+            await loadActiveContent();
+            // Refresh audit log so the action is visible immediately
+            if (typeof refreshAuditLog === 'function') {
+                refreshAuditLog();
+            }
         } else {
             alert('Error: ' + result.message);
         }
-    } catch (e) { alert('Network error'); }
+    } catch (e) { 
+        alert('Network error'); 
+    }
 }
 
 async function archiveItem(id, type) {
     if (!confirm(`Archive this item?`)) return;
-    console.log(`Attempting to archive ${type} ID: ${id}`);
+    
     try {
         const res = await fetchWithAuth(`/api/${type}/${id}`, { method: 'DELETE' });
         if (!res) {
             alert('Error: Server error occurred');
-            console.error('Archive request failed - no response');
             return;
         }
         const result = await res.json();
-        console.log(`Archive response for ${type} ID ${id}:`, result);
+        
         if (result.success) {
-            alert('Item archived successfully! It will no longer appear in the active list.');
-            // Reload content to update announcements and news lists (archived items will be filtered out)
-            await loadContentManagement();
-            // Also reload archived content in case user switches to archives tab
+            alert('Item archived successfully!');
+            await loadActiveContent();
             await loadArchivedContent();
-            // Refresh audit log if available
-            if (window.refreshAuditLog) refreshAuditLog();
+            // Refresh audit log so the action is visible immediately
+            if (typeof refreshAuditLog === 'function') {
+                refreshAuditLog();
+            }
         } else {
             alert('Error: ' + (result.message || 'Failed to archive item'));
         }
     } catch (e) { 
-        console.error('Archive error:', e);
         alert('Network error: Failed to archive item'); 
     }
 }
 
-
-
-// --- Counter Logic ---
+// ============= CHARACTER COUNTERS =============
 
 function initCounters() {
     setupCounter('announcementTitle', 'announcementTitleCounter', 40);
@@ -336,11 +339,10 @@ function initCounters() {
 }
 
 function setupCounter(inputId, counterId, limit) {
-    const input = getEl(inputId);
-    const counter = getEl(counterId);
+    const input = document.getElementById(inputId);
+    const counter = document.getElementById(counterId);
     if (!input || !counter) return;
 
-    // Attach function to element for easy re-use
     input.updateCount = () => {
         const count = input.value.length;
         counter.textContent = count;
@@ -351,45 +353,32 @@ function setupCounter(inputId, counterId, limit) {
 
 function forceUpdateCounters(ids) {
     ids.forEach(id => {
-        const el = getEl(id);
+        const el = document.getElementById(id);
         if (el && el.updateCount) el.updateCount();
-        else {
-            // Fallback if event listener isn't ready yet
-            const counter = getEl(id.replace('Description', 'Counter').replace('Title', 'TitleCounter')); 
-            if(counter) counter.textContent = el.value.length;
-        }
     });
 }
 
-// =======================
-// ARCHIVE SUB-TAB LOGIC
-// =======================
+// ============= ARCHIVE SUB-TAB LOGIC =============
+
 window.switchArchiveSubTab = function(type) {
     const btnAnn = document.getElementById('subTabArchAnn');
     const btnNews = document.getElementById('subTabArchNews');
     const boxAnn = document.getElementById('containerArchivedAnn');
     const boxNews = document.getElementById('containerArchivedNews');
 
-    if (!btnAnn || !btnNews || !boxAnn || !boxNews) {
-        console.warn('Archive subtab elements not found');
-        return;
-    }
+    if (!btnAnn || !btnNews || !boxAnn || !boxNews) return;
 
     if (type === 'announcements') {
-        // Show Announcements, Hide News
         boxAnn.classList.remove('hidden');
         boxNews.classList.add('hidden');
-
-        // Style Buttons (Active vs Inactive)
         btnAnn.className = "px-6 py-2 rounded-md text-sm font-bold bg-white text-green-800 shadow-sm transition-all";
         btnNews.className = "px-6 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-green-800 transition-all";
     } else {
-        // Show News, Hide Announcements
         boxAnn.classList.add('hidden');
         boxNews.classList.remove('hidden');
-
-        // Style Buttons
         btnNews.className = "px-6 py-2 rounded-md text-sm font-bold bg-white text-green-800 shadow-sm transition-all";
         btnAnn.className = "px-6 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-green-800 transition-all";
     }
 };
+
+export { loadActiveContent, loadArchivedContent };

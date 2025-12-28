@@ -1,36 +1,62 @@
-// =======================
-// AUDIT LOG LOGIC
-// =======================
+/**
+ * Audit Controller
+ * Handles audit log display, filtering, sorting, and downloads
+ */
 
-// Logo data imported from logo_data.js
-// Make sure logo_data.js is loaded before this module
+import { AuditService } from '../services/audit.service.js';
 
-async function fetchAuditLogs() {
-    const auditLogTableBody = document.getElementById('auditLogTableBody');
-    if (!auditLogTableBody) {
-        console.warn('Audit: auditLogTableBody element not found');
-        return;
+let auditLogData = [];
+let filteredAuditLogs = [];
+
+export async function initAudit() {
+    const auditLogSearchInput = document.getElementById('auditLogSearchInput');
+    const auditDateFilter = document.getElementById('auditDateFilter');
+    const auditDownloadBtn = document.getElementById('auditDownloadBtn');
+    const auditDownloadMenu = document.getElementById('auditDownloadMenu');
+
+    if (auditLogSearchInput) auditLogSearchInput.addEventListener("input", applyAuditFilters);
+    if (auditDateFilter) auditDateFilter.addEventListener("change", applyAuditFilters);
+
+    // Download menu
+    if (auditDownloadBtn && auditDownloadMenu) {
+        auditDownloadBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            auditDownloadMenu.classList.toggle('hidden');
+        });
+        document.addEventListener('click', (e) => {
+            if (!auditDownloadBtn.contains(e.target) && !auditDownloadMenu.contains(e.target)) {
+                auditDownloadMenu.classList.add('hidden');
+            }
+        });
     }
+
+    await loadAuditLogs();
+}
+
+async function loadAuditLogs() {
     try {
-        const response = await fetchWithAuth('/api/audit-logs');
-        const data = await response.json();
+        const data = await AuditService.getLogs();
         if (data.success) {
-            auditLogData = data.logs.map(log => ({ 
-                ...log, 
+            auditLogData = data.logs.map(log => ({
+                ...log,
                 rawTimestamp: log.timestamp,
                 displayTimestamp: new Date(log.timestamp).toLocaleString()
             }));
             filteredAuditLogs = auditLogData;
-            populateAuditLog(filteredAuditLogs);
+            renderAuditTable(filteredAuditLogs);
         }
-    } catch (error) { console.error(error); }
+    } catch (error) { 
+        console.error('Error loading audit logs:', error); 
+    }
 }
 
-function populateAuditLog(data) {
+function renderAuditTable(data) {
     const auditLogTableBody = document.getElementById('auditLogTableBody');
     const auditDownloadBtn = document.getElementById('auditDownloadBtn');
     if (!auditLogTableBody) return;
+    
     auditLogTableBody.innerHTML = "";
+    
     if (data.length === 0) {
         auditLogTableBody.innerHTML = `
             <tr>
@@ -50,14 +76,21 @@ function populateAuditLog(data) {
         }
         return;
     }
+    
     if (auditDownloadBtn) {
         auditDownloadBtn.disabled = false;
         auditDownloadBtn.classList.remove("opacity-50", "cursor-not-allowed");
         auditDownloadBtn.classList.add("hover:bg-green-800");
     }
+    
     data.forEach(log => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td class="px-4 py-2 border whitespace-nowrap">${log.displayTimestamp}</td><td class="px-4 py-2 border">${log.user}</td><td class="px-4 py-2 border text-xs">${log.actionType}</td><td class="px-4 py-2 border">${log.description}</td>`;
+        tr.innerHTML = `
+            <td class="px-4 py-2 border whitespace-nowrap">${log.displayTimestamp}</td>
+            <td class="px-4 py-2 border">${log.user}</td>
+            <td class="px-4 py-2 border text-xs">${log.actionType}</td>
+            <td class="px-4 py-2 border">${log.description}</td>
+        `;
         auditLogTableBody.appendChild(tr);
     });
 }
@@ -81,81 +114,43 @@ function applyAuditFilters() {
         );
     }
 
-    // Date filter - use rawTimestamp (format: YYYY-MM-DD HH:mm:ss)
-    if (filterValue !== "all-time") {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+    // Date filter
+    if (filterValue && filterValue !== 'all-time') {
+        const startDate = new Date();
         
-        if (filterValue === "today") {
-            const todayStr = today.toLocaleDateString('en-CA'); // YYYY-MM-DD
-            filtered = filtered.filter(log => log.rawTimestamp.startsWith(todayStr));
+        if (filterValue === 'today') {
+            const today = new Date();
+            const startStr = today.toLocaleDateString('en-CA');
+            filtered = filtered.filter(log => log.rawTimestamp.startsWith(startStr));
         } else {
-            let startDate = new Date(today);
+            if (filterValue === 'past-week') startDate.setDate(startDate.getDate() - 7);
+            else if (filterValue === 'past-month') startDate.setMonth(startDate.getMonth() - 1);
+            else if (filterValue === 'past-year') startDate.setFullYear(startDate.getFullYear() - 1);
             
-            if (filterValue === "past-week") {
-                startDate.setDate(startDate.getDate() - 7);
-            } else if (filterValue === "past-month") {
-                startDate.setMonth(startDate.getMonth() - 1);
-            } else if (filterValue === "past-year") {
-                startDate.setFullYear(startDate.getFullYear() - 1);
-            }
-            
-            const startStr = startDate.toLocaleDateString('en-CA'); // YYYY-MM-DD
+            const startStr = startDate.toLocaleDateString('en-CA');
             filtered = filtered.filter(log => {
-                const logDate = log.rawTimestamp.split(' ')[0]; // Extract YYYY-MM-DD
+                const logDate = log.rawTimestamp.split(' ')[0];
                 return logDate >= startStr;
             });
         }
     }
 
     filteredAuditLogs = filtered;
-    populateAuditLog(filteredAuditLogs);
+    renderAuditTable(filteredAuditLogs);
 }
 
-// Initialize Audit section
-function initAudit() {
-    const auditLogSearchInput = document.getElementById('auditLogSearchInput');
-    const auditDateFilter = document.getElementById('auditDateFilter');
-    const auditDownloadBtn = document.getElementById('auditDownloadBtn');
-    const auditDownloadMenu = document.getElementById('auditDownloadMenu');
-
-    if (auditLogSearchInput) auditLogSearchInput.addEventListener("input", applyAuditFilters);
-    if (auditDateFilter) auditDateFilter.addEventListener("change", applyAuditFilters);
-
-    // Download menu
-    if (auditDownloadBtn) {
-        auditDownloadBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            auditDownloadMenu.classList.toggle('hidden');
-        });
-        document.addEventListener('click', (e) => {
-            if (!auditDownloadBtn.contains(e.target) && !auditDownloadMenu.contains(e.target)) {
-                auditDownloadMenu.classList.add('hidden');
-            }
-        });
-    }
-}
-
-// Expose to window for admin_loader.js
-window.fetchAuditLogs = fetchAuditLogs;
-window.initAudit = initAudit;
-window.refreshAuditLog = refreshAuditLog;
-
-// Function to refresh audit log (called after actions)
 async function refreshAuditLog() {
-    await fetchAuditLogs();
+    await loadAuditLogs();
 }
 
-// =======================
-// DOWNLOAD EXCEL 
-// =======================
-async function downloadAuditExcel() {
+// ============= DOWNLOADS =============
+
+window.downloadAuditExcel = async function () {
     if (!filteredAuditLogs.length) {
         alert("No audit logs to download.");
         return;
     }
 
-    // Ensure ExcelJS is available
     if (typeof ExcelJS === "undefined") {
         alert("ExcelJS library is not loaded.");
         return;
@@ -163,7 +158,6 @@ async function downloadAuditExcel() {
 
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Audit Logs");
-
     const dateStr = new Date().toLocaleString();
 
     // --- Header rows ---
@@ -185,66 +179,39 @@ async function downloadAuditExcel() {
     // --- Column headers ---
     const headerRow = sheet.addRow(["Timestamp", "User", "Action Type", "Description"]);
     headerRow.eachCell(cell => {
-        cell.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'DCFCE7' }
-        };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'DCFCE7' } };
         cell.font = { bold: true, color: { argb: '15803D' } };
         cell.alignment = { horizontal: 'center' };
-        cell.border = {
-            top: { style: 'thin' },
-            left: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' }
-        };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
     });
 
     // --- Data rows ---
-filteredAuditLogs.forEach((log, idx) => {
-        const row = sheet.addRow([log.timestamp, log.user, log.actionType, log.description]);
+    filteredAuditLogs.forEach((log, idx) => {
+        const row = sheet.addRow([log.displayTimestamp, log.user, log.actionType, log.description]);
         
-        // Loop through all cells to apply borders and alternating colors
         row.eachCell((cell) => {
-            // Apply Borders
-            cell.border = {
-                top: { style: 'thin' },
-                left: { style: 'thin' },
-                bottom: { style: 'thin' },
-                right: { style: 'thin' }
-            };
-
-            // Apply Alternating Row Colors (Zebra Striping)
+            cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
             if (idx % 2 === 0) {
-                cell.fill = { 
-                    type: "pattern", 
-                    pattern: "solid", 
-                    fgColor: { argb: "FFF3F4F6" } 
-                };
+                cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF3F4F6" } };
             }
         });
     });
 
-    // Set column widths
     sheet.columns = [
         { width: 25 }, { width: 20 }, { width: 20 }, { width: 50 }
     ];
 
-    // Download
     const buf = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Audit_Logs_${dateStr}.xlsx`;
+    a.download = `Audit_Logs_${dateStr.split(',')[0].replace(/\//g, '-')}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
-}
+};
 
-// =======================
-// DOWNLOAD PDF
-// =======================
-function downloadAuditPDF() {
+window.downloadAuditPDF = function () {
     if (!filteredAuditLogs.length) {
         alert("No audit logs to download.");
         return;
@@ -253,34 +220,29 @@ function downloadAuditPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF("l", "mm", "a4");
     const dateStr = new Date().toLocaleString();
-    const pageWidth = doc.internal.pageSize.getWidth();
 
-    // Add Logo on the left
+    // Add Logo
     if (typeof logoBase64 !== 'undefined' && logoBase64) {
         doc.addImage(logoBase64, "PNG", 10, 8, 25, 25);
     }
 
-    // Main Title (aligned with logo on the same line)
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(21, 128, 61);
     doc.text("Admin Audit Log Report", 40, 18, { align: "left" });
 
-    // Subtitle
     doc.setFontSize(13);
     doc.setFont("helvetica", "italic");
     doc.setTextColor(100, 116, 139);
     doc.text("Record of Submitted Logs", 40, 26, { align: "left" });
 
-    // Date
     doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(148, 163, 184);
     doc.text(`Date: ${dateStr}`, 40, 33, { align: "left" });
 
-    // Table
     const rows = filteredAuditLogs.map(log => [
-        log.timestamp,
+        log.displayTimestamp,
         log.user,
         log.actionType,
         log.description
@@ -295,17 +257,9 @@ function downloadAuditPDF() {
         headStyles: { fillColor: [220, 252, 231], textColor: [21, 128, 61], fontStyle: 'bold' }
     });
 
-    doc.save(`Audit_Logs_${dateStr}.pdf`);
-}
-
-// =======================
-// INIT
-// =======================
-fetchAuditLogs();
-
-// Event-driven refresh: exported function for other modules to call
-window.refreshAuditLog = function() {
-    if (typeof fetchAuditLogs === 'function') {
-        fetchAuditLogs();
-    }
+    doc.save(`Audit_Logs_${dateStr.split(',')[0].replace(/\//g, '-')}.pdf`);
 };
+
+// ============= GLOBAL EXPORTS =============
+
+export { filteredAuditLogs, refreshAuditLog };

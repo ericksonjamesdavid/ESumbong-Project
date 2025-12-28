@@ -41,7 +41,7 @@ async function loadHeader() {
     // Select links
     const desktopLinks = headerPlaceholder.querySelectorAll('.xl\\:flex a[href]');
     const mobileLinks = headerPlaceholder.querySelectorAll('#mobile-nav a[href]');
-    const dropdownLinks = headerPlaceholder.querySelectorAll('#reports-dropdown a[href]'); // Add dropdown links
+    const dropdownLinks = headerPlaceholder.querySelectorAll('#reports-dropdown a[href]');
 
     const allLinks = [...desktopLinks, ...mobileLinks, ...dropdownLinks];
 
