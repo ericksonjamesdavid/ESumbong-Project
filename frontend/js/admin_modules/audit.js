@@ -2,6 +2,9 @@
 // AUDIT LOG LOGIC
 // =======================
 
+// Logo data imported from logo_data.js
+// Make sure logo_data.js is loaded before this module
+
 async function fetchAuditLogs() {
     const auditLogTableBody = document.getElementById('auditLogTableBody');
     if (!auditLogTableBody) {
@@ -252,23 +255,28 @@ function downloadAuditPDF() {
     const dateStr = new Date().toLocaleString();
     const pageWidth = doc.internal.pageSize.getWidth();
 
-    // Main Title
+    // Add Logo on the left
+    if (typeof logoBase64 !== 'undefined' && logoBase64) {
+        doc.addImage(logoBase64, "PNG", 10, 8, 25, 25);
+    }
+
+    // Main Title (aligned with logo on the same line)
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(21, 128, 61);
-    doc.text("Admin Audit Log Report", pageWidth / 2, 15, { align: "center" });
+    doc.text("Admin Audit Log Report", 40, 18, { align: "left" });
 
     // Subtitle
     doc.setFontSize(13);
     doc.setFont("helvetica", "italic");
     doc.setTextColor(100, 116, 139);
-    doc.text("Record of Submitted Logs", pageWidth / 2, 23, { align: "center" });
+    doc.text("Record of Submitted Logs", 40, 26, { align: "left" });
 
     // Date
     doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(148, 163, 184);
-    doc.text(`Date: ${dateStr}`, pageWidth / 2, 30, { align: "center" });
+    doc.text(`Date: ${dateStr}`, 40, 33, { align: "left" });
 
     // Table
     const rows = filteredAuditLogs.map(log => [
@@ -279,7 +287,7 @@ function downloadAuditPDF() {
     ]);
 
     doc.autoTable({
-        startY: 35,
+        startY: 38,
         head: [["Timestamp", "User", "Action Type", "Description"]],
         body: rows,
         theme: "grid",

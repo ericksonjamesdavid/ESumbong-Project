@@ -417,19 +417,61 @@ window.downloadExcel = async function () {
 };
 
 window.downloadPDF = function () {
+    if (!filteredReports.length) {
+        alert("No reports to download.");
+        return;
+    }
+    
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: 'landscape' });
-    
-    doc.text("Record of Submitted Reports", 14, 20);
+    const dateStr = new Date().toLocaleString();
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // Add Logo on the left
+    if (typeof logoBase64 !== 'undefined' && logoBase64) {
+        doc.addImage(logoBase64, "PNG", 10, 8, 25, 25);
+    }
+
+    // Main Title (aligned with logo on the same line)
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(21, 128, 61);
+    doc.text("Barangay Report Management System", 40, 18, { align: "left" });
+
+    // Subtitle
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "italic");
+    doc.setTextColor(100, 116, 139);
+    doc.text("Record of Submitted Reports", 40, 26, { align: "left" });
+
+    // Date
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(148, 163, 184);
+    doc.text(`Date: ${dateStr}`, 40, 33, { align: "left" });
+
+    // Table
+    const rows = filteredReports.map(r => [
+        r.trackingId,
+        r.name || 'Anonymous',
+        r.category,
+        r.description,
+        r.address,
+        r.date,
+        r.status,
+        r.priority
+    ]);
     
     doc.autoTable({
+        startY: 38,
         head: [["ID", "Name", "Category", "Description", "Address", "Date", "Status", "Priority"]],
-        body: filteredReports.map(r => [r.trackingId, r.name||'Anon', r.category, r.description, r.address, r.date, r.status, r.priority]),
-        startY: 30,
-        headStyles: { fillColor: [21, 128, 61] }
+        body: rows,
+        theme: "grid",
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [220, 252, 231], textColor: [21, 128, 61], fontStyle: 'bold' }
     });
     
-    doc.save(`Reports_${new Date().toISOString().split('T')[0]}.pdf`);
+    doc.save(`Reports_${dateStr.split(',')[0].replace(/\//g, '-')}.pdf`);
 };
 
 // Global Exposure
