@@ -61,15 +61,22 @@ export async function initContent() {
 }
 
 function switchTab(activeTab) {
+    const activeClasses = ['bg-white', 'text-green-900', 'shadow-md', 'ring-1', 'ring-black/5', 'font-extrabold', 'md:scale-105', 'z-10'];
+    const inactiveClasses = ['text-gray-500', 'hover:text-green-700', 'hover:bg-white/60', 'font-medium'];
+    
     ['Announcements', 'News', 'Archives'].forEach(tab => {
         const btn = document.getElementById(`tab${tab}`);
+        const icon = btn?.querySelector('i');
         const panel = document.getElementById(`panel${tab}`);
         
         if (btn && panel) {
             if (tab === activeTab) {
-                // Add active styles without touching layout classes
-                btn.classList.remove('font-medium', 'text-gray-500', 'hover:text-green-700', 'hover:bg-gray-200');
-                btn.classList.add('font-bold', 'text-green-800', 'bg-white', 'shadow-sm', 'transform', 'scale-105');
+                btn.classList.remove(...inactiveClasses);
+                btn.classList.add(...activeClasses);
+                if (icon) {
+                    icon.classList.remove('opacity-70');
+                    icon.classList.add('text-green-600');
+                }
                 panel.classList.remove('hidden');
                 
                 if (tab === 'Archives') {
@@ -79,9 +86,12 @@ function switchTab(activeTab) {
                     loadActiveContent();
                 }
             } else {
-                // Add inactive styles without touching layout classes
-                btn.classList.remove('font-bold', 'text-green-800', 'bg-white', 'shadow-sm', 'transform', 'scale-105');
-                btn.classList.add('font-medium', 'text-gray-500', 'hover:text-green-700', 'hover:bg-gray-200');
+                btn.classList.remove(...activeClasses);
+                btn.classList.add(...inactiveClasses);
+                if (icon) {
+                    icon.classList.remove('text-green-600');
+                    icon.classList.add('opacity-70');
+                }
                 panel.classList.add('hidden');
             }
         }
