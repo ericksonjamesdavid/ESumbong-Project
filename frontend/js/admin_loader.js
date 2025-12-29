@@ -4,14 +4,14 @@
 async function loadAdminDashboard() {
     console.log("Starting Admin Dashboard...");
 
-    // 1. Define component paths
+    // 1. Define component paths (relative to the current page location)
     const components = [
-        { id: 'modals-placeholder',   url: 'admin_components/modals.html' },
-        { id: 'sectionAnnouncements', url: 'admin_components/sections/announcements.html' },
-        { id: 'sectionCharts',        url: 'admin_components/sections/charts.html' },
-        { id: 'sectionReports',       url: 'admin_components/sections/reports.html' },
-        { id: 'sectionAuditLog',      url: 'admin_components/sections/audit.html' },
-        { id: 'sectionSuggestions',   url: 'admin_components/sections/suggestions.html' }
+        { id: 'modals-placeholder',   url: './modals.html' },
+        { id: 'sectionAnnouncements', url: './sections/announcements.html' },
+        { id: 'sectionCharts',        url: './sections/charts.html' },
+        { id: 'sectionReports',       url: './sections/reports.html' },
+        { id: 'sectionAuditLog',      url: './sections/audit.html' },
+        { id: 'sectionSuggestions',   url: './sections/suggestions.html' }
     ];
 
     // 2. Fetch all HTML files

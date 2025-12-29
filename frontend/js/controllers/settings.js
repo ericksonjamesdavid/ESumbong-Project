@@ -37,7 +37,7 @@ function initSettings() {
   const token = localStorage.getItem('adminToken');
   if (!token) {
     alert('Please log in to access Account Settings.');
-    window.location.href = 'admin_signin.html';
+    window.location.href = '/admin_components/admin_signin.html';
     return;
   }
   loadAdminProfile();
@@ -179,7 +179,7 @@ function handlePasswordUpdateSuccess(btn, originalText, shouldLogout) {
 
   if (shouldLogout) {
     showPasswordError("Password updated! Redirecting to login...", true);
-    setTimeout(() => { window.location.href = "admin_signin.html"; }, 2000);
+    setTimeout(() => { window.location.href = "/admin_components/admin_signin.html"; }, 2000);
   } else {
     showPasswordError("Password updated successfully!", true);
     setButtonLoading(btn, false, originalText);
@@ -377,7 +377,7 @@ async function submitHandover() {
       localStorage.setItem('adminDisplayName', fullName);
       localStorage.removeItem('authToken');
       alert(`Handover Complete!\n\nWelcome, ${fullName}.\nRedirecting to login...`);
-      window.location.href = 'admin_signin.html';
+      window.location.href = '/admin_components/admin_signin.html';
     } else {
       throw new Error(result.message || "Handover failed");
     }

@@ -4,7 +4,7 @@
  */
 async function loadHeaderSidebar(pageTitle = 'Admin Dashboard') {
     try {
-        const response = await fetch('templates/_header-sidebar.html');
+        const response = await fetch('/templates/_header-sidebar.html');
         const html = await response.text();
         
         // Insert at the beginning of body
@@ -98,7 +98,7 @@ function setupSidebarButtons(isSettingsPage) {
             if (isSettingsPage) {
                 // In settings page: redirect to dashboard with section preference
                 localStorage.setItem('defaultSection', sectionId);
-                location.href = 'admin_dashboard.html';
+                location.href = '/admin_components/admin_dashboard.html';
             } else {
                 // In dashboard page: use showSection function
                 if (typeof showSection === 'function') {
@@ -142,7 +142,7 @@ function setupLogout() {
                 // Optionally clear sessionStorage too
                 sessionStorage.clear();
                 // Redirect to login
-                window.location.href = 'admin_signin.html';
+                window.location.href = '/admin_components/admin_signin.html';
             }
         });
     }

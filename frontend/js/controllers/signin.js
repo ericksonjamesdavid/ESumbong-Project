@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Store token and redirect
                 storeJWTToken(result.token);
                 localStorage.setItem('defaultSection', 'sectionAnnouncements');
-                window.location.href = 'admin_dashboard.html';
+                window.location.href = '/admin_components/admin_dashboard.html';
             } else {
                 showError(loginErrorDiv, result.message || 'Invalid username or password.');
                 hideSpinner(submitButton, 'Sign In');

@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 1. Check Auth
     const token = localStorage.getItem('adminToken');
     if (!token) {
-        window.location.href = 'admin_signin.html';
+        window.location.href = '/admin_components/admin_signin.html';
         return;
     }
 
@@ -53,5 +53,6 @@ window.initCharts = initCharts;
 window.initAudit = initAudit;
 window.initSuggestions = initSuggestions;
 window.refreshAuditLog = refreshAuditLog;
+window.switchArchiveSubTab = switchArchiveSubTab;
 
 export { initReports, initContent, initCharts, initAudit, initSuggestions, refreshAuditLog };

@@ -53,7 +53,7 @@ async function fetchWithAuth(url, options = {}) {
                 data.message === 'Invalid token. Access denied.') {
                 removeJWTToken();
                 alert('Session expired. Please login again.');
-                window.location.href = 'admin_signin.html';
+                window.location.href = '/admin_components/admin_signin.html';
                 return null;
             }
         }

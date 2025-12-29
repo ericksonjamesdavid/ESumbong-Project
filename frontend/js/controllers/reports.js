@@ -15,6 +15,7 @@ window.galleryCache = galleryCache;
 
 export async function initReports() {
     const tableBody = document.getElementById("reportTableBody");
+    const cardContainer = document.getElementById("reportCardContainer");
     const searchInput = document.getElementById("searchInput");
     const dateFilter = document.getElementById("dateRangeFilter");
 
@@ -24,6 +25,11 @@ export async function initReports() {
     if (tableBody) {
         tableBody.addEventListener('click', handleTableClick);
         tableBody.addEventListener('change', handleStatusChange);
+    }
+
+    if (cardContainer) {
+        cardContainer.addEventListener('click', handleTableClick);
+        cardContainer.addEventListener('change', handleStatusChange);
     }
 
     // Modal & Download Setup
@@ -49,14 +55,17 @@ async function loadReports() {
 
 function populateTable(data) {
     const tbody = document.getElementById("reportTableBody");
+    const cardContainer = document.getElementById("reportCardContainer");
     const downloadBtn = document.getElementById("downloadMenuBtn");
-    if (!tbody) return;
+    if (!tbody && !cardContainer) return;
     
-    tbody.innerHTML = "";
+    // Clear both table and cards
+    if (tbody) tbody.innerHTML = "";
+    if (cardContainer) cardContainer.innerHTML = "";
     galleryCacheIndex = 0;
     
     if (data.length === 0) {
-        tbody.innerHTML = `
+        const emptyMessage = `
             <tr>
                 <td colspan="10" class="text-center p-10 text-gray-500">
                     <div class="flex flex-col items-center justify-center">
@@ -66,6 +75,14 @@ function populateTable(data) {
                     </div>
                 </td>
             </tr>
+        `;
+        if (tbody) tbody.innerHTML = emptyMessage;
+        if (cardContainer) cardContainer.innerHTML = `
+            <div class="flex flex-col items-center justify-center p-10 text-gray-500">
+                <i class="fa-solid fa-folder-open text-4xl mb-3 text-gray-300"></i>
+                <p class="text-lg font-semibold">No Records Found</p>
+                <p class="text-sm">Try adjusting your search or date filters.</p>
+            </div>
         `;
         if (downloadBtn) {
             downloadBtn.disabled = true;
@@ -82,38 +99,98 @@ function populateTable(data) {
     }
 
     data.forEach(r => {
-        const tr = document.createElement("tr");
-        tr.className = "hover:bg-gray-50 transition";
-        tr.innerHTML = `
-            <td class="px-4 py-2 border font-mono">${r.trackingId}</td>
-            <td class="px-4 py-2 border">${r.name || "Anonymous"}</td>
-            <td class="px-4 py-2 border text-center">${renderMediaCell(r.photo)}</td>
-            <td class="px-4 py-2 border">${r.category}</td>
-            <td class="px-4 py-2 border text-center">
-                <button class="view-desc-btn bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800" data-desc="${r.description}">View</button>
-            </td>
-            <td class="px-4 py-2 border text-center">
-                <button class="view-address-btn bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800"
-                        data-address="${r.address}" data-lat="${r.latitude}" data-lng="${r.longitude}">View</button>
-            </td>
-            <td class="px-4 py-2 border text-center">${renderMediaCell(r.areaPhoto)}</td>
-            <td class="px-4 py-2 border whitespace-nowrap">${r.date}</td>
-            <td class="px-4 py-2 border">
-                <select class="border rounded px-2 py-1 ${r.status === "Resolved" ? "opacity-60 cursor-not-allowed" : ""}" 
-                        data-id="${r.trackingId}" data-type="status" ${r.status === "Resolved" ? "disabled" : ""}>
-                    <option value="Pending" ${r.status === "Pending" ? "selected" : ""}>Pending</option>
-                    <option value="In Progress" ${r.status === "In Progress" ? "selected" : ""}>In Progress</option>
-                    <option value="Resolved" ${r.status === "Resolved" ? "selected" : ""}>Resolved</option>
-                </select>
-            </td>
-            <td class="px-4 py-2 border text-center">
-                <span class="w-28 inline-block px-2 py-1 rounded-full text-white text-sm font-semibold text-center
-                ${r.priority === 'Emergency' ? 'bg-red-600' : r.priority === 'High' ? 'bg-yellow-500' : 'bg-green-600'}">
-                  ${r.priority}
-                </span>
-            </td>
-        `;
-        tbody.appendChild(tr);
+        // Desktop Table Row
+        if (tbody) {
+            const tr = document.createElement("tr");
+            tr.className = "hover:bg-gray-50 transition";
+            tr.innerHTML = `
+                <td class="px-4 py-2 border font-mono">${r.trackingId}</td>
+                <td class="px-4 py-2 border">${r.name || "Anonymous"}</td>
+                <td class="px-4 py-2 border text-center">${renderMediaCell(r.photo)}</td>
+                <td class="px-4 py-2 border">${r.category}</td>
+                <td class="px-4 py-2 border text-center">
+                    <button class="view-desc-btn bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800" data-desc="${r.description}">View</button>
+                </td>
+                <td class="px-4 py-2 border text-center">
+                    <button class="view-address-btn bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800"
+                            data-address="${r.address}" data-lat="${r.latitude}" data-lng="${r.longitude}">View</button>
+                </td>
+                <td class="px-4 py-2 border text-center">${renderMediaCell(r.areaPhoto)}</td>
+                <td class="px-4 py-2 border whitespace-nowrap">${r.date}</td>
+                <td class="px-4 py-2 border">
+                    <select class="border rounded px-2 py-1 ${r.status === "Resolved" ? "opacity-60 cursor-not-allowed" : ""}" 
+                            data-id="${r.trackingId}" data-type="status" ${r.status === "Resolved" ? "disabled" : ""}>
+                        <option value="Pending" ${r.status === "Pending" ? "selected" : ""}>Pending</option>
+                        <option value="In Progress" ${r.status === "In Progress" ? "selected" : ""}>In Progress</option>
+                        <option value="Resolved" ${r.status === "Resolved" ? "selected" : ""}>Resolved</option>
+                    </select>
+                </td>
+                <td class="px-4 py-2 border text-center">
+                    <span class="w-28 inline-block px-2 py-1 rounded-full text-white text-sm font-semibold text-center
+                    ${r.priority === 'Emergency' ? 'bg-red-600' : r.priority === 'High' ? 'bg-yellow-500' : 'bg-green-600'}">
+                      ${r.priority}
+                    </span>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        // Mobile Card View
+        if (cardContainer) {
+            const card = document.createElement("div");
+            card.className = "bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition";
+            card.innerHTML = `
+                <div class="flex flex-col gap-3">
+                    <div class="flex justify-between items-start gap-2">
+                        <div>
+                            <p class="text-sm font-bold text-green-900">Tracking ID</p>
+                            <p class="text-sm font-mono text-gray-700">${r.trackingId}</p>
+                        </div>
+                        <span class="inline-block px-2 py-1 rounded-full text-white text-xs font-semibold
+                        ${r.priority === 'Emergency' ? 'bg-red-600' : r.priority === 'High' ? 'bg-yellow-500' : 'bg-green-600'}">
+                          ${r.priority}
+                        </span>
+                    </div>
+
+                    <div>
+                        <p class="text-sm font-bold text-gray-700">Name</p>
+                        <p class="text-sm text-gray-600">${r.name || "Anonymous"}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-sm font-bold text-gray-700">Status</p>
+                        <select class="w-full border border-gray-300 rounded px-2 py-1 text-sm ${r.status === "Resolved" ? "opacity-60 cursor-not-allowed" : ""}" 
+                                data-id="${r.trackingId}" data-type="status" ${r.status === "Resolved" ? "disabled" : ""}>
+                            <option value="Pending" ${r.status === "Pending" ? "selected" : ""}>Pending</option>
+                            <option value="In Progress" ${r.status === "In Progress" ? "selected" : ""}>In Progress</option>
+                            <option value="Resolved" ${r.status === "Resolved" ? "selected" : ""}>Resolved</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <p class="text-sm font-bold text-gray-700">Category</p>
+                        <p class="text-sm text-gray-600">${r.category}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-sm font-bold text-gray-700">Date Submitted</p>
+                        <p class="text-sm text-gray-600">${r.date}</p>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button class="flex-1 view-desc-btn bg-green-700 text-white px-3 py-2 rounded text-sm hover:bg-green-800" 
+                                data-desc="${r.description}">
+                            <i class="fas fa-file-lines mr-1"></i>Description
+                        </button>
+                        <button class="flex-1 view-address-btn bg-green-700 text-white px-3 py-2 rounded text-sm hover:bg-green-800"
+                                data-address="${r.address}" data-lat="${r.latitude}" data-lng="${r.longitude}">
+                            <i class="fas fa-map-pin mr-1"></i>Location
+                        </button>
+                    </div>
+                </div>
+            `;
+            cardContainer.appendChild(card);
+        }
     });
 }
 
@@ -123,13 +200,13 @@ function renderMediaCell(paths) {
     if (files.length === 0) return "-";
 
     const items = files.map(path => ({
-        src: path,
+        src: '/' + path,  // Prepend / for absolute path
         type: /\.(mp4|webm|mkv)$/i.test(path) ? 'video' : 'image'
     }));
 
     const key = galleryCacheIndex++;
     galleryCache[key] = items;
-    const first = files[0];
+    const first = '/' + files[0];  // Prepend / for absolute path
     const isVideo = items[0].type === 'video';
 
     const thumb = isVideo 

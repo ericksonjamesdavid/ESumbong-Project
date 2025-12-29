@@ -62,6 +62,8 @@ function showSuggestionContent(suggestion) {
     const idEl = document.getElementById('suggestion-id');
     const dateEl = document.getElementById('suggestion-date');
     const bodyEl = document.getElementById('suggestion-body');
+    const listColEl = document.getElementById('suggestion-list-col');
+    const contentColEl = document.getElementById('suggestion-content-col');
     
     // Handle null case (reset)
     if (!suggestion) {
@@ -69,6 +71,12 @@ function showSuggestionContent(suggestion) {
         if (contentEl) contentEl.classList.add('hidden');
         window.currentSuggestionId = null;
         return;
+    }
+    
+    // On mobile (< 768px), hide the list and show the content
+    if (window.innerWidth < 768) {
+        if (listColEl) listColEl.classList.add('hidden');
+        if (contentColEl) contentColEl.classList.remove('hidden');
     }
     
     // Update the reading pane UI
@@ -127,8 +135,17 @@ async function handleDeleteSuggestion() {
     }
 }
 
+function closeMobileSuggestion() {
+    const listColEl = document.getElementById('suggestion-list-col');
+    const contentColEl = document.getElementById('suggestion-content-col');
+    
+    if (listColEl) listColEl.classList.remove('hidden');
+    if (contentColEl) contentColEl.classList.add('hidden');
+}
+
 // Global Exports
 window.showSuggestionContent = showSuggestionContent;
 window.handleDeleteSuggestion = handleDeleteSuggestion;
+window.closeMobileSuggestion = closeMobileSuggestion;
 
 export { allSuggestions, loadSuggestions };

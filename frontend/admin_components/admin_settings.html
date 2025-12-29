@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Account Settings</title>
-  <link rel="icon" type="image/png" href="Images/Logo.png">
+  <link rel="icon" type="image/png" href="/Images/Logo.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
@@ -30,7 +30,7 @@
 
             <div class="px-6 pb-6 text-center relative">
               <div class="relative -mt-12 mb-4 inline-block">
-                <img src="Images/Logo.png" alt="Admin"
+                <img src="/Images/Logo.png" alt="Admin"
                   class="w-24 h-24 rounded-full border-4 border-white shadow-md object-cover bg-white">
               </div>
 
@@ -318,15 +318,15 @@
     </div>
   </div>
 
-  <script src="js/core/auth.js"></script>
-  <script src="js/components/sidebar.js"></script>
-  <script src="js/utils/headerLoader.js"></script>
+  <script src="../js/core/auth.js"></script>
+  <script src="../js/components/sidebar.js"></script>
+  <script src="../js/utils/headerLoader.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       loadHeaderSidebar('Account Settings');
     });
   </script>
-  <script type="module" src="js/controllers/settings.js"></script>
+  <script type="module" src="../js/controllers/settings.js"></script>
 
 </body>
 

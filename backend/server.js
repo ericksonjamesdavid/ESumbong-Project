@@ -259,6 +259,22 @@ app.get('/api/debug/announcements-archive-state', (req, res) => {
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
 // ============================================================
+// REDIRECT ROUTES - OLD ADMIN PATHS TO NEW LOCATION
+// ============================================================
+
+app.get('/admin_dashboard.html', (req, res) => {
+    res.redirect('/admin_components/admin_dashboard.html');
+});
+
+app.get('/admin_settings.html', (req, res) => {
+    res.redirect('/admin_components/admin_settings.html');
+});
+
+app.get('/admin_signin.html', (req, res) => {
+    res.redirect('/admin_components/admin_signin.html');
+});
+
+// ============================================================
 // ERROR HANDLING - 404
 // ============================================================
 

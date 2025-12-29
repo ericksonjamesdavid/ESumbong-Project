@@ -1,94 +1,110 @@
-<section class="bg-green-50 py-16 px-6">
-  <div class="max-w-7xl mx-auto">
+      <div class="space-y-6">
 
-    <h2 class="text-4xl md:text-5xl font-extrabold text-center mb-10 text-green-900 tracking-tight drop-shadow-sm">
-      Barangay Announcements & News
-    </h2>
+        <h2
+          class="text-2xl md:text-3xl font-extrabold text-left mb-6 text-green-900 tracking-tight">
+            Barangay Announcements & News
+          </h2>
 
-    <div class="bg-white rounded-xl shadow-md border border-gray-200 mb-12 overflow-hidden h-[850px] flex flex-col">
-      <div class="px-6 pt-6 pb-2">
-        <div class="bg-gray-100 p-1.5 rounded-xl inline-flex items-center gap-1 shadow-inner border border-gray-200">
-          <button id="tabAnnouncements"
-            class="px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-sm bg-white text-green-800">
-            <i class="fa-solid fa-bullhorn mr-2"></i> Announcements
-          </button>
-          <button id="tabNews"
-            class="px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-green-700 transition-all">
-            <i class="fa-regular fa-newspaper mr-2"></i> News
-          </button>
-          <button id="tabArchives"
-            class="px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-green-700 transition-all">
-            <i class="fa-solid fa-box-archive mr-2"></i> Archives
-          </button>
-        </div>
-      </div>
-
-      <div class="p-6 flex-grow overflow-y-scroll">
-
-        <div id="panelAnnouncements" class="block">
-          <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-bold text-green-900">Manage Announcements</h3>
-            <button id="addAnnouncementBtn"
-              class="bg-green-900 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition flex items-center gap-2 shadow-sm">
-              <i class="fas fa-plus"></i> Post Announcement
-            </button>
-          </div>
-          <div id="announcementList" class="grid grid-cols-1 gap-4">
-          </div>
-        </div>
-
-        <div id="panelNews" class="hidden">
-          <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-bold text-emerald-900">Manage News</h3>
-            <button id="addNewsBtn"
-              class="bg-green-900 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition flex items-center gap-2 shadow-sm">
-              <i class="fas fa-plus"></i> Post News
-            </button>
-          </div>
-          <div id="newsList" class="grid grid-cols-1 gap-4">
-          </div>
-        </div>
-
-        <div id="panelArchives" class="hidden animate-fade-in space-y-6">
-
-          <div class="flex justify-center mb-6">
-            <div class="bg-gray-200 p-1 rounded-lg inline-flex shadow-inner">
-              <button id="subTabArchAnn" onclick="switchArchiveSubTab('announcements')"
-                class="px-6 py-2 rounded-md text-sm font-bold bg-white text-green-800 shadow-sm transition-all">
-                Announcements
-              </button>
-              <button id="subTabArchNews" onclick="switchArchiveSubTab('news')"
-                class="px-6 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-green-800 transition-all">
-                News Articles
-              </button>
-            </div>
-          </div>
-
-          <div id="containerArchivedAnn">
-            <div class="bg-gray-50 p-6 rounded-xl border-2 border-gray-200 border-dashed min-h-[300px]">
-              <h3 class="text-lg font-bold text-gray-600 mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-bullhorn opacity-50"></i> Archived Announcements
-              </h3>
-              <div id="archivedAnnList" class="grid grid-cols-1 gap-4">
-                <p class="text-gray-400 text-sm italic">Loading...</p>
+          <div class="px-3 pt-4 md:px-6 md:pt-6 pb-2 bg-white rounded-xl shadow-md border border-gray-200 mb-12 overflow-hidden h-[calc(100vh-140px)] min-h-[500px] flex flex-col">
+            <div class="px-0 pt-2 md:px-6 md:pt-6 pb-2 sticky top-0 z-10 bg-white">
+              <div
+                class="bg-gray-100 p-1.5 rounded-xl grid grid-cols-3 gap-2 shadow-inner border border-gray-200 w-full">
+                <button id="tabAnnouncements"
+                  class="px-2 sm:px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-sm bg-white text-green-800 flex flex-col md:flex-row items-center justify-center text-center">
+                  <i class="fa-solid fa-bullhorn text-lg md:text-base mb-1 md:mb-0 md:mr-2"></i> <span class="text-xs md:text-sm leading-none">Announcements</span>
+                </button>
+                <button id="tabNews"
+                  class="px-2 sm:px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-green-700 transition-all flex flex-col md:flex-row items-center justify-center text-center">
+                  <i class="fa-regular fa-newspaper text-lg md:text-base mb-1 md:mb-0 md:mr-2"></i> <span class="text-xs md:text-sm leading-none">News</span>
+                </button>
+                <button id="tabArchives"
+                  class="px-2 sm:px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-green-700 transition-all flex flex-col md:flex-row items-center justify-center text-center">
+                  <i class="fa-solid fa-box-archive text-lg md:text-base mb-1 md:mb-0 md:mr-2"></i> <span class="text-xs md:text-sm leading-none">Archives</span>
+                </button>
               </div>
             </div>
-          </div>
 
-          <div id="containerArchivedNews" class="hidden">
-            <div class="bg-gray-50 p-6 rounded-xl border-2 border-gray-200 border-dashed min-h-[300px]">
-              <h3 class="text-lg font-bold text-gray-600 mb-4 flex items-center gap-2">
-                <i class="fa-regular fa-newspaper opacity-50"></i> Archived News
-              </h3>
-              <div id="archivedNewsList" class="grid grid-cols-1 gap-4">
-                <p class="text-gray-400 text-sm italic">Loading...</p>
+            <div class="p-6 flex-grow overflow-y-scroll">
+
+              <div id="panelAnnouncements" class="block">
+                <div class="flex items-center justify-between gap-4 mb-6">
+                  <h3 class="text-xl font-bold text-green-900">Manage Announcements</h3>
+                  <button id="addAnnouncementBtn"
+                    class="bg-green-900 text-white w-10 h-10 md:w-auto md:h-auto md:px-4 md:py-2 text-sm md:text-base rounded-lg hover:bg-green-800 transition flex items-center justify-center md:gap-2 shadow-sm">
+                    <i class="fas fa-plus"></i><span class="hidden md:inline ml-2">Post Announcement</span>
+                  </button>
+                </div>
+                <div id="announcementList" class="grid grid-cols-1 gap-4">
+                  <div id="announcementEmptyState" class="text-center py-10 text-gray-400 hidden">
+                    <i class="fas fa-clipboard-list text-4xl mb-3 opacity-30"></i>
+                    <p>No announcements yet.</p>
+                    <button onclick="document.getElementById('addAnnouncementBtn').click()" class="mt-4 text-green-800 font-bold text-sm underline hover:text-green-600">
+                      Create one now
+                    </button>
+                  </div>
+                </div>
               </div>
+
+              <div id="panelNews" class="hidden">
+                <div class="flex items-center justify-between gap-4 mb-6">
+                  <h3 class="text-xl font-bold text-emerald-900">Manage News</h3>
+                  <button id="addNewsBtn"
+                    class="bg-green-900 text-white w-10 h-10 md:w-auto md:h-auto md:px-4 md:py-2 text-sm md:text-base rounded-lg hover:bg-green-800 transition flex items-center justify-center md:gap-2 shadow-sm">
+                    <i class="fas fa-plus"></i><span class="hidden md:inline ml-2">Post News</span>
+                  </button>
+                </div>
+                <div id="newsList" class="grid grid-cols-1 gap-4">
+                  <div id="newsEmptyState" class="text-center py-10 text-gray-400 hidden">
+                    <i class="fas fa-newspaper text-4xl mb-3 opacity-30"></i>
+                    <p>No news yet.</p>
+                    <button onclick="document.getElementById('addNewsBtn').click()" class="mt-4 text-green-800 font-bold text-sm underline hover:text-green-600">
+                      Create one now
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div id="panelArchives" class="hidden animate-fade-in space-y-6">
+
+                <div class="flex justify-center mb-6">
+                  <div class="bg-gray-200 p-1 rounded-lg grid grid-cols-2 gap-1 shadow-inner w-full sm:w-auto">
+                    <button id="subTabArchAnn" onclick="switchArchiveSubTab('announcements')"
+                      class="px-2 sm:px-6 py-2 rounded-md text-xs sm:text-sm font-bold bg-white text-green-800 shadow-sm transition-all flex items-center justify-center">
+                      Announcements
+                    </button>
+                    <button id="subTabArchNews" onclick="switchArchiveSubTab('news')"
+                      class="px-2 sm:px-6 py-2 rounded-md text-xs sm:text-sm font-medium text-gray-500 hover:text-green-800 transition-all flex items-center justify-center">
+                      News Articles
+                    </button>
+                  </div>
+                </div>
+
+                <div id="containerArchivedAnn">
+                  <div class="bg-gray-50 p-6 rounded-xl border-2 border-gray-200 border-dashed min-h-[150px] md:min-h-[300px]">
+                    <h3 class="text-lg font-bold text-gray-600 mb-4 flex items-center gap-2">
+                      <i class="fa-solid fa-bullhorn opacity-50"></i> Archived Announcements
+                    </h3>
+                    <div id="archivedAnnList" class="grid grid-cols-1 gap-4">
+                      <p class="text-gray-400 text-sm italic">Loading...</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div id="containerArchivedNews" class="hidden">
+                  <div class="bg-gray-50 p-6 rounded-xl border-2 border-gray-200 border-dashed min-h-[150px] md:min-h-[300px]">
+                    <h3 class="text-lg font-bold text-gray-600 mb-4 flex items-center gap-2">
+                      <i class="fa-solid fa-newspaper opacity-50"></i> Archived News
+                    </h3>
+                    <div id="archivedNewsList" class="grid grid-cols-1 gap-4">
+                      <p class="text-gray-400 text-sm italic">Loading...</p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
             </div>
           </div>
 
         </div>
-
       </div>
-    </div>
-  </div>
-</section>

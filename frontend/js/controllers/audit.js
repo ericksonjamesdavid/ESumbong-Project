@@ -52,13 +52,16 @@ async function loadAuditLogs() {
 
 function renderAuditTable(data) {
     const auditLogTableBody = document.getElementById('auditLogTableBody');
+    const auditCardContainer = document.getElementById('auditCardContainer');
     const auditDownloadBtn = document.getElementById('auditDownloadBtn');
-    if (!auditLogTableBody) return;
+    if (!auditLogTableBody && !auditCardContainer) return;
     
-    auditLogTableBody.innerHTML = "";
+    // Clear both
+    if (auditLogTableBody) auditLogTableBody.innerHTML = "";
+    if (auditCardContainer) auditCardContainer.innerHTML = "";
     
     if (data.length === 0) {
-        auditLogTableBody.innerHTML = `
+        const emptyMessage = `
             <tr>
                 <td colspan="4" class="text-center p-10 text-gray-500">
                     <div class="flex flex-col items-center justify-center">
@@ -68,6 +71,14 @@ function renderAuditTable(data) {
                     </div>
                 </td>
             </tr>
+        `;
+        if (auditLogTableBody) auditLogTableBody.innerHTML = emptyMessage;
+        if (auditCardContainer) auditCardContainer.innerHTML = `
+            <div class="flex flex-col items-center justify-center p-10 text-gray-500">
+                <i class="fa-solid fa-folder-open text-4xl mb-3 text-gray-300"></i>
+                <p class="text-lg font-semibold">No Records Found</p>
+                <p class="text-sm">Try adjusting your search or date filters.</p>
+            </div>
         `;
         if (auditDownloadBtn) {
             auditDownloadBtn.disabled = true;
@@ -84,14 +95,47 @@ function renderAuditTable(data) {
     }
     
     data.forEach(log => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td class="px-4 py-2 border whitespace-nowrap">${log.displayTimestamp}</td>
-            <td class="px-4 py-2 border">${log.user}</td>
-            <td class="px-4 py-2 border text-xs">${log.actionType}</td>
-            <td class="px-4 py-2 border">${log.description}</td>
-        `;
-        auditLogTableBody.appendChild(tr);
+        // Desktop Table Row
+        if (auditLogTableBody) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="px-4 py-2 border whitespace-nowrap">${log.displayTimestamp}</td>
+                <td class="px-4 py-2 border">${log.user}</td>
+                <td class="px-4 py-2 border text-xs">${log.actionType}</td>
+                <td class="px-4 py-2 border">${log.description}</td>
+            `;
+            auditLogTableBody.appendChild(tr);
+        }
+
+        // Mobile Card View
+        if (auditCardContainer) {
+            const card = document.createElement("div");
+            card.className = "bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition";
+            card.innerHTML = `
+                <div class="flex flex-col gap-3">
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 uppercase">Timestamp</p>
+                        <p class="text-sm text-gray-800 font-mono">${log.displayTimestamp}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 uppercase">User</p>
+                        <p class="text-sm text-gray-800">${log.user}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 uppercase">Action Type</p>
+                        <p class="text-sm text-gray-800 font-mono">${log.actionType}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 uppercase">Description</p>
+                        <p class="text-sm text-gray-700">${log.description}</p>
+                    </div>
+                </div>
+            `;
+            auditCardContainer.appendChild(card);
+        }
     });
 }
 
