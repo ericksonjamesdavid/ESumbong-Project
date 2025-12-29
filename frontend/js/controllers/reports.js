@@ -311,10 +311,24 @@ function setupModalClosers() {
         if (el) el.classList.add('hidden');
     };
     
-    const closeAddressBtn = document.getElementById('closeAddressModal');
-    const closeDescBtn = document.getElementById('closeDescriptionModal');
-    if (closeAddressBtn) closeAddressBtn.addEventListener('click', () => close('addressModal'));
-    if (closeDescBtn) closeDescBtn.addEventListener('click', () => close('descriptionModal'));
+    // Use event delegation - click anywhere on the overlay to close
+    document.addEventListener('click', (e) => {
+        // Close address modal
+        if (e.target.id === 'closeAddressModal') {
+            close('addressModal');
+        }
+        // Close description modal
+        if (e.target.id === 'closeDescriptionModal') {
+            close('descriptionModal');
+        }
+        // Close on overlay background click
+        if (e.target.id === 'addressModal') {
+            close('addressModal');
+        }
+        if (e.target.id === 'descriptionModal') {
+            close('descriptionModal');
+        }
+    });
 }
 
 function setupDownloadMenu() {

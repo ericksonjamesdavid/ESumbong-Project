@@ -106,8 +106,7 @@ async function updatePasswordAPI(currentPassword, newPassword, confirmPassword) 
       return {
         success: false,
         message: errorMsg,
-        isCurrentPassError: errorMsg.toLowerCase().includes('current password') || 
-                           errorMsg.toLowerCase().includes('incorrect'),
+        isCurrentPassError: response.status === 400 || response.status === 401,
         status: response.status
       };
     }

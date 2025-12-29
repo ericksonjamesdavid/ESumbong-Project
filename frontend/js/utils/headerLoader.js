@@ -27,7 +27,7 @@ async function loadHeaderSidebar(pageTitle = 'Admin Dashboard') {
             initSidebar();
         }
         
-        console.log('✓ Header & Sidebar loaded');
+        console.log('Header & Sidebar loaded');
     } catch (error) {
         console.error('Error loading header-sidebar:', error);
     }

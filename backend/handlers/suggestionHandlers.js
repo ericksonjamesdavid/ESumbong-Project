@@ -51,7 +51,7 @@ const handleMarkSuggestionRead = (db, req, res) => {
         // Get suggestion details for audit log
         db.query('SELECT suggestion_id FROM suggestions WHERE id = ?', [id], (queryErr, queryResult) => {
             const suggestionId = queryResult && queryResult[0] ? queryResult[0].suggestion_id : 'Unknown';
-            const description = `Marked suggestion ${suggestionId} as read.`;
+            const description = `Marked suggestion "${suggestionId}" as read.`;
             if (DEBUG_AUDIT) console.log(`AUDIT LOG DEBUG - Suggestion ID: ${suggestionId} Description: ${description}`);
             logAuditAction(db, req.admin.id, 'Admin', 'SUGGESTION_READ', 'suggestions', id, description);
             // Return the suggestionId in the response so client can confirm and UI can refresh with exact id
@@ -78,9 +78,9 @@ const handleDeleteSuggestion = (db, req, res) => {
                 console.error('Error deleting suggestion:', err);
                 return res.status(500).json({ success: false, message: 'Database error' });
             }
-            
-            logAuditAction(db, req.admin.id, 'Admin', 'SUGGESTION_DELETED', 'suggestions', id, `Deleted suggestion ${suggestionId}.`);
-            
+
+            logAuditAction(db, req.admin.id, 'Admin', 'SUGGESTION_DELETED', 'suggestions', id, `Deleted suggestion "${suggestionId}".`);
+
             res.status(200).json({ success: true, message: 'Suggestion deleted' });
         });
     });

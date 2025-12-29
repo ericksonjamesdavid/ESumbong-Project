@@ -64,3 +64,14 @@ async function fetchWithAuth(url, options = {}) {
         throw error;
     }
 }
+
+// =============================
+// GLOBAL WINDOW EXPORTS (for backward compatibility with script tag loading)
+// =============================
+// When auth.js is loaded as a global script tag, expose functions to window
+if (typeof window !== 'undefined') {
+    window.storeJWTToken = storeJWTToken;
+    window.getJWTToken = getJWTToken;
+    window.removeJWTToken = removeJWTToken;
+    window.fetchWithAuth = fetchWithAuth;
+}
