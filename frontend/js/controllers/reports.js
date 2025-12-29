@@ -10,9 +10,6 @@ let filteredReports = [];
 let galleryCache = {};
 let galleryCacheIndex = 0;
 
-// Expose galleryCache to window for HTML onclick handlers
-window.galleryCache = galleryCache;
-
 export async function initReports() {
     const tableBody = document.getElementById("reportTableBody");
     const cardContainer = document.getElementById("reportCardContainer");
@@ -106,7 +103,12 @@ function populateTable(data) {
             tr.innerHTML = `
                 <td class="px-4 py-2 border font-mono">${r.trackingId}</td>
                 <td class="px-4 py-2 border">${r.name || "Anonymous"}</td>
-                <td class="px-4 py-2 border text-center">${renderMediaCell(r.photo)}</td>
+                <td class="px-4 py-2 border text-center">
+                  <div class="flex flex-col items-center">
+                    <span class="text-xs font-mono font-bold text-gray-600 mb-1">${r.barangay_id || ""}</span>
+                    ${renderMediaCell(r.photo)}
+                  </div>
+                </td>
                 <td class="px-4 py-2 border">${r.category}</td>
                 <td class="px-4 py-2 border text-center">
                     <button class="view-desc-btn bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800" data-desc="${r.description}">View</button>
@@ -137,59 +139,139 @@ function populateTable(data) {
 
         // Mobile Card View
         if (cardContainer) {
-            const card = document.createElement("div");
-            card.className = "bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition";
-            card.innerHTML = `
-                <div class="flex flex-col gap-3">
-                    <div class="flex justify-between items-start gap-2">
-                        <div>
-                            <p class="text-sm font-bold text-green-900">Tracking ID</p>
-                            <p class="text-sm font-mono text-gray-700">${r.trackingId}</p>
-                        </div>
-                        <span class="inline-block px-2 py-1 rounded-full text-white text-xs font-semibold
-                        ${r.priority === 'Emergency' ? 'bg-red-600' : r.priority === 'High' ? 'bg-yellow-500' : 'bg-green-600'}">
-                          ${r.priority}
-                        </span>
-                    </div>
+            let allCardsHTML = ''; // Build string first to avoid layout thrashing
+            
+            data.forEach((r, index) => {
+            // Logic to disable dropdown if Resolved (Same as Desktop)
+            const isResolved = r.status === "Resolved";
+            const disabledAttr = isResolved ? "disabled" : "";
+            const disabledClass = isResolved ? "opacity-60 cursor-not-allowed bg-gray-50" : "bg-white";
+            
+            // Format date for mobile display
+            const dateObj = new Date(r.date);
+            const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
-                    <div>
-                        <p class="text-sm font-bold text-gray-700">Name</p>
-                        <p class="text-sm text-gray-600">${r.name || "Anonymous"}</p>
-                    </div>
+            // Build photo/ID thumbnail with gallery support OR placeholder
+            let photoHTML = '';
+            if (r.photo) {
+                const photoFiles = r.photo.split(',').map(p => p.trim()).filter(p => p);
+                const photoItems = photoFiles.map(path => ({
+                    src: '/' + path,
+                    type: /\.(mp4|webm|mkv)$/i.test(path) ? 'video' : 'image'
+                }));
+                const photoKey = galleryCacheIndex++;
+                galleryCache[photoKey] = photoItems;
+                const firstPhoto = '/' + photoFiles[0];
+                const isPhotoVideo = photoItems[0].type === 'video';
+                
+                const photoThumb = isPhotoVideo 
+                    ? `<div class="relative w-12 h-12"><video src="${firstPhoto}" class="w-full h-full object-cover bg-black rounded" muted></video><i class="fa-solid fa-play text-white absolute inset-0 m-auto w-fit h-fit drop-shadow-md text-xs"></i></div>`
+                    : `<img src="${firstPhoto}" class="w-12 h-12 object-cover rounded shadow-sm border border-gray-200">`;
+                
+                photoHTML = `<div class="cursor-pointer hover:opacity-80 transition shrink-0" onclick="window.initGallery(window.galleryCache[${photoKey}]); document.getElementById('imageModal').classList.remove('hidden');">${photoThumb}</div>`;
+            } else {
+                // Placeholder icon for users without a photo
+                photoHTML = `<div class="w-12 h-12 bg-gray-100 rounded border border-gray-200 flex items-center justify-center shrink-0"><i class="fas fa-user text-gray-300 text-xl"></i></div>`;
+            }
 
-                    <div>
-                        <p class="text-sm font-bold text-gray-700">Status</p>
-                        <select class="w-full border border-gray-300 rounded px-2 py-1 text-sm ${r.status === "Resolved" ? "opacity-60 cursor-not-allowed" : ""}" 
-                                data-id="${r.trackingId}" data-type="status" ${r.status === "Resolved" ? "disabled" : ""}>
-                            <option value="Pending" ${r.status === "Pending" ? "selected" : ""}>Pending</option>
-                            <option value="In Progress" ${r.status === "In Progress" ? "selected" : ""}>In Progress</option>
-                            <option value="Resolved" ${r.status === "Resolved" ? "selected" : ""}>Resolved</option>
-                        </select>
-                    </div>
+            // Conditional ID text (hides completely if no ID)
+            const idHTML = (r.barangay_id && r.barangay_id !== "N/A") 
+                ? `<p class="text-xs text-gray-500 font-mono mt-0.5"><i class="fas fa-id-card opacity-50 mr-1"></i>ID: <span class="font-bold text-gray-700">${r.barangay_id}</span></p>`
+                : '';
 
-                    <div>
-                        <p class="text-sm font-bold text-gray-700">Category</p>
-                        <p class="text-sm text-gray-600">${r.category}</p>
-                    </div>
+            // Build evidence gallery items
+            let evidenceGalleryHTML = '';
+            if (r.areaPhoto) {
+                const evidenceFiles = r.areaPhoto.split(',').map(p => p.trim()).filter(p => p);
+                const evidenceItems = evidenceFiles.map(path => ({
+                    src: '/' + path,
+                    type: /\.(mp4|webm|mkv)$/i.test(path) ? 'video' : 'image'
+                }));
+                const evidenceKey = galleryCacheIndex++;
+                galleryCache[evidenceKey] = evidenceItems;
+                evidenceGalleryHTML = `window.initGallery(window.galleryCache[${evidenceKey}]); document.getElementById('imageModal').classList.remove('hidden');`;
+            }
 
-                    <div>
-                        <p class="text-sm font-bold text-gray-700">Date Submitted</p>
-                        <p class="text-sm text-gray-600">${r.date}</p>
-                    </div>
+            const cardHTML = `
+  <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col gap-3 relative">
+    
+    <div class="flex justify-between items-start gap-3">
+      <div class="flex-1 min-w-0">
+        <h3 class="font-bold text-gray-900 text-lg truncate capitalize">${r.name || "Anonymous"}</h3>
+        ${idHTML}
+      </div>
+      <div class="flex flex-col items-end gap-2">
+        ${photoHTML}
+        <div class="text-right">
+          <span class="text-[10px] text-gray-400 block mb-0.5">${formattedDate}</span>
+          <div class="flex items-center justify-end gap-1">
+            <span class="bg-gray-100 text-gray-600 text-[10px] px-2 py-1 rounded border border-gray-200 font-mono">
+              #${r.trackingId}
+            </span>
+            <span class="text-[10px] px-2 py-1 rounded-md font-bold text-white ${r.priority === 'Emergency' ? 'bg-red-600' : r.priority === 'High' ? 'bg-yellow-500' : 'bg-green-600'}">
+              ${r.priority}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
 
-                    <div class="flex gap-2">
-                        <button class="flex-1 view-desc-btn bg-green-700 text-white px-3 py-2 rounded text-sm hover:bg-green-800" 
-                                data-desc="${r.description}">
-                            <i class="fas fa-file-lines mr-1"></i>Description
-                        </button>
-                        <button class="flex-1 view-address-btn bg-green-700 text-white px-3 py-2 rounded text-sm hover:bg-green-800"
-                                data-address="${r.address}" data-lat="${r.latitude}" data-lng="${r.longitude}">
-                            <i class="fas fa-map-pin mr-1"></i>Location
-                        </button>
-                    </div>
-                </div>
-            `;
-            cardContainer.appendChild(card);
+    <div>
+      <div class="mb-2">
+         <span class="text-xs font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-full border border-green-100 capitalize">
+           ${r.category}
+         </span>
+      </div>
+      <div class="mb-2">
+        <p class="text-sm text-gray-600 line-clamp-2 leading-relaxed cursor-pointer hover:text-green-800 transition capitalize"
+           onclick="document.getElementById('modalDescriptionText').textContent = \`${r.description.replace(/`/g, "\\`")}\`; document.getElementById('descriptionModal').classList.remove('hidden');">
+          ${r.description}
+        </p>
+        <span class="text-[10px] text-blue-600 cursor-pointer font-medium" 
+           onclick="document.getElementById('modalDescriptionText').textContent = \`${r.description.replace(/`/g, "\\`")}\`; document.getElementById('descriptionModal').classList.remove('hidden');">
+          (Tap to read full)
+        </span>
+      </div>
+      <p class="text-xs text-gray-500 flex items-center gap-1 cursor-pointer hover:text-green-700 transition"
+         onclick="openAddressModal({ address: '${r.address.replace(/'/g, "&apos;")}', lat: ${r.latitude}, lng: ${r.longitude} })">
+        <i class="fas fa-map-marker-alt text-red-500"></i> 
+        <span class="underline decoration-dotted truncate">${r.address}</span>
+      </p>
+    </div>
+
+    <div class="pt-3 mt-1 border-t border-gray-100 grid grid-cols-2 gap-3 items-center">
+      
+      <div>
+        <p class="text-[10px] text-gray-400 font-bold uppercase mb-1">Update Status</p>
+        <select class="w-full text-xs border border-gray-300 rounded px-2 py-1.5 focus:ring-2 focus:ring-green-700 outline-none ${disabledClass}" 
+                data-id="${r.trackingId}" data-type="status" ${disabledAttr}>
+            <option value="Pending" ${r.status === "Pending" ? "selected" : ""}>Pending</option>
+            <option value="In Progress" ${r.status === "In Progress" ? "selected" : ""}>In Progress</option>
+            <option value="Resolved" ${r.status === "Resolved" ? "selected" : ""}>Resolved</option>
+        </select>
+      </div>
+
+      <div class="flex justify-end items-end h-full">
+        ${r.areaPhoto ? `
+          <button onclick="${evidenceGalleryHTML}" 
+            class="w-full flex items-center justify-center gap-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-lg transition-colors shadow-sm h-full">
+            <i class="fas fa-eye"></i> View Evidence
+          </button>
+        ` : `
+          <button disabled class="w-full text-xs font-medium text-gray-400 bg-gray-100 px-3 py-1.5 rounded-lg cursor-not-allowed h-full text-center">
+             No Evidence
+          </button>
+        `}
+      </div>
+
+    </div>
+  </div>
+`;
+            allCardsHTML += cardHTML;  // Append to string instead of DOM
+            });
+            
+            // Inject all cards to DOM once (much better performance)
+            cardContainer.innerHTML = allCardsHTML;
         }
     });
 }
@@ -257,10 +339,7 @@ async function handleStatusChange(e) {
     try {
         await ReportService.updateStatus(id, newVal);
         allReports.find(r => r.trackingId === id).status = newVal;
-        if (newVal === "Resolved") { 
-            select.disabled = true; 
-            select.classList.add("opacity-60", "cursor-not-allowed");
-        }
+        // Removed the lock on "Resolved" status - allow admins to reopen tickets if needed
         
         // Refresh audit logs so the action is visible immediately in the audit log table
         if (typeof refreshAuditLog === 'function') {
@@ -552,6 +631,24 @@ window.downloadPDF = function () {
     doc.save(`Reports_${dateStr.split(',')[0].replace(/\//g, '-')}.pdf`);
 };
 
+// ============= VIEW EVIDENCE HELPER =============
+
+function viewEvidence(url) {
+  // Make sure the URL is properly formatted with absolute path
+  const imageUrl = url.startsWith('/') ? url : '/' + url;
+  
+  // Check if it's an image or just a generic file
+  const isImage = imageUrl.match(/\.(jpeg|jpg|gif|png)$/) != null;
+
+  if (isImage) {
+    // Open image in new tab
+    window.open(imageUrl, '_blank');
+  } else {
+    // If it's a PDF, video, or other file, just open it
+    window.open(imageUrl, '_blank');
+  }
+}
+
 // ============= INITIALIZATION & PUBLIC API =============
 
 // Public function for external calls (legacy compatibility)
@@ -560,9 +657,7 @@ async function fetchReports() {
 }
 
 // Expose to window for HTML onclick handlers and legacy code
-window.downloadExcel = window.downloadExcel;
-window.downloadPDF = window.downloadPDF;
 window.galleryCache = galleryCache;
 window.fetchReports = fetchReports;
-
-export { allReports, filteredReports, galleryCache };
+window.viewEvidence = viewEvidence;
+window.openAddressModal = openAddressModal;

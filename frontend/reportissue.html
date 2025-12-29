@@ -114,9 +114,9 @@
       <div>
         <label>Description<span class="text-red-600">*</span></label>
         <textarea id="description" required class="w-full border rounded px-3 py-2"
-          placeholder="Describe the issue..." maxlength="2000"></textarea>
+          placeholder="Describe the issue..." maxlength="500"></textarea>
         <div class="text-right text-sm text-gray-500 mt-1">
-          <span id="descriptionCounter">0</span>/2000 characters
+          <span id="descriptionCounter">0</span>/500 characters
         </div>
       </div>
 
@@ -269,7 +269,7 @@
       descriptionTextarea.addEventListener('input', function() {
         const count = this.value.length;
         descriptionCounter.textContent = count;
-        if (count > 2000) {
+        if (count > 500) {
           descriptionCounter.classList.add('text-red-500');
         } else {
           descriptionCounter.classList.remove('text-red-500');

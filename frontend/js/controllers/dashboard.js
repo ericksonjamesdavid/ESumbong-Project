@@ -53,6 +53,5 @@ window.initCharts = initCharts;
 window.initAudit = initAudit;
 window.initSuggestions = initSuggestions;
 window.refreshAuditLog = refreshAuditLog;
-window.switchArchiveSubTab = switchArchiveSubTab;
 
 export { initReports, initContent, initCharts, initAudit, initSuggestions, refreshAuditLog };

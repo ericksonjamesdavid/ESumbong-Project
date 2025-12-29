@@ -540,10 +540,7 @@ function setupHandoverListeners() {
 // =============================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Initialize the sidebar logic from sidebar.js
-  if (typeof initSidebar === 'function') {
-    initSidebar();
-  }
+  // Note: initSidebar() is already called by headerLoader.js, no need to call it again
 
   initSettings();
   setupPersonalSecurityListeners();
