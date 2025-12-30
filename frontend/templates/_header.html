@@ -1,4 +1,4 @@
-<header class="bg-green-900 text-white shadow-md fixed top-0 left-0 w-full z-50">
+<header class="bg-green-900/95 backdrop-blur-md text-white shadow-md fixed top-0 left-0 w-full z-50">
   <div class="flex items-center justify-between px-4 py-4 w-full">
     
     <div class="flex items-center space-x-2 xl:space-x-3">
@@ -6,8 +6,9 @@
         <img src="Images/Logo.png" id="Logo" alt="Logo" class="w-12 h-12 xl:w-16 xl:h-16 rounded-full" title="Go to Official Facebook Page"/>
       </a>
       <div class="leading-tight min-w-0">
-        <h1 class="text-lg xl:text-xl font-semibold truncate">
-          E-Sumbong kay Kap! Barangay Pulong Buhangin
+        <h1 class="font-semibold truncate">
+          <span class="md:hidden text-lg">E-Sumbong</span>
+          <span class="hidden md:block xl:text-xl text-lg">E-Sumbong kay Kap! Barangay Pulong Buhangin</span>
         </h1>
         <p class="text-green-200 text-xs xl:text-sm italic">
           Tinig ng Mamamayan, Aksyon ni Kap!
@@ -45,20 +46,35 @@
         <i class="fas fa-bars text-2xl"></i>
       </button>
 
-      <a href="/admin_components/admin_signin.html" class="text-green-300 hover:text-white transition flex items-center justify-center ml-2" title="Admin Login">
+      <a href="/admin_components/admin_signin.html" class="hidden xl:flex text-green-300 hover:text-white transition items-center justify-center ml-2" title="Admin Login">
         <i class="fas fa-user-shield text-2xl transition-transform duration-300 hover:scale-110"></i>
       </a>
     </div>
 
   </div>
 
-  <nav id="mobile-nav" class="xl:hidden hidden flex flex-col bg-green-800 px-4 py-4 z-50">
-    <a href="index.html" class="block w-full text-center text-green-300 hover:text-white py-2 hover:bg-green-700 rounded transition">Home</a>
-    <a href="reportissue.html" class="block w-full text-center text-green-300 hover:text-white py-2 hover:bg-green-700 rounded transition">Submit a Report</a>
-    <a href="trackreports.html" class="block w-full text-center text-green-300 hover:text-white py-2 hover:bg-green-700 rounded transition">Track Reports</a>
-    <a href="emergencyhotlines.html" class="block w-full text-center text-green-300 hover:text-white py-2 hover:bg-green-700 rounded transition">Emergency Hotlines</a>
-    <a href="suggestions.html" class="block w-full text-center text-green-300 hover:text-white py-2 hover:bg-green-700 rounded transition">Suggestions</a>
-    <a href="about.html" class="block w-full text-center text-green-300 hover:text-white py-2 hover:bg-green-700 rounded transition">About</a>
+  <nav id="mobile-nav" class="xl:hidden hidden absolute w-full left-0 top-full shadow-xl flex flex-col bg-green-800 border-t border-green-700 px-4 py-4 z-50 max-h-[85vh] overflow-y-auto">
+    <a href="index.html" class="block w-full text-left text-green-300 hover:text-white py-2 px-4 hover:bg-green-700 rounded transition inline-block">
+      <i class="fas fa-home w-6"></i> Home
+    </a>
+    <a href="reportissue.html" class="block w-full text-left text-green-300 hover:text-white py-2 px-4 hover:bg-green-700 rounded transition inline-block">
+      <i class="fas fa-file-alt w-6"></i> Submit a Report
+    </a>
+    <a href="trackreports.html" class="block w-full text-left text-green-300 hover:text-white py-2 px-4 hover:bg-green-700 rounded transition inline-block">
+      <i class="fas fa-search w-6"></i> Track Reports
+    </a>
+    <a href="emergencyhotlines.html" class="block w-full text-left text-green-300 hover:text-white py-2 px-4 hover:bg-green-700 rounded transition inline-block">
+      <i class="fas fa-phone-volume w-6"></i> Emergency Hotlines
+    </a>
+    <a href="suggestions.html" class="block w-full text-left text-green-300 hover:text-white py-2 px-4 hover:bg-green-700 rounded transition inline-block">
+      <i class="fas fa-lightbulb w-6"></i> Suggestions
+    </a>
+    <a href="about.html" class="block w-full text-left text-green-300 hover:text-white py-2 px-4 hover:bg-green-700 rounded transition inline-block">
+      <i class="fas fa-info-circle w-6"></i> About
+    </a>
+    <a href="/admin_components/admin_signin.html" class="w-full flex justify-center py-2 bg-green-700 text-green-300 hover:text-white hover:bg-green-600 rounded transition mt-2">
+      <i class="fas fa-user-shield text-xl"></i> Admin Login
+    </a>
   </nav>
 
 </header>

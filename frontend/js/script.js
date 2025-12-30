@@ -49,3 +49,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     initReportSubmission();
     initLightboxClose();
 });
+
+// CLOSE DROPDOWNS ON OUTSIDE CLICK
+document.addEventListener('click', (e) => {
+    const reportsBtn = document.getElementById('reports-btn');
+    const reportsDropdown = document.getElementById('reports-dropdown');
+    const chevron = document.getElementById('chevron');
+
+    // Check if the click is OUTSIDE the button and OUTSIDE the menu
+    if (reportsBtn && reportsDropdown && !reportsBtn.contains(e.target) && !reportsDropdown.contains(e.target)) {
+        // Hide the menu
+        reportsDropdown.classList.add('hidden');
+        // Reset the arrow rotation
+        if(chevron) chevron.classList.remove('rotate-180');
+    }
+});
