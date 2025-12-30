@@ -102,14 +102,18 @@ function populateTable(data) {
             tr.className = "hover:bg-gray-50 transition";
             tr.innerHTML = `
                 <td class="px-4 py-2 border font-mono">${r.trackingId}</td>
-                <td class="px-4 py-2 border">${r.name || "Anonymous"}</td>
+                
+                <td class="px-4 py-2 border capitalize">${r.name || "Anonymous"}</td>
+                
                 <td class="px-4 py-2 border text-center">
                   <div class="flex flex-col items-center">
                     <span class="text-xs font-mono font-bold text-gray-600 mb-1">${r.barangay_id || ""}</span>
                     ${renderMediaCell(r.photo)}
                   </div>
                 </td>
-                <td class="px-4 py-2 border">${r.category}</td>
+                
+                <td class="px-4 py-2 border capitalize">${r.category}</td>
+                
                 <td class="px-4 py-2 border text-center">
                     <button class="view-desc-btn bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800" data-desc="${r.description}">View</button>
                 </td>
@@ -165,13 +169,13 @@ function populateTable(data) {
                 const isPhotoVideo = photoItems[0].type === 'video';
                 
                 const photoThumb = isPhotoVideo 
-                    ? `<div class="relative w-12 h-12"><video src="${firstPhoto}" class="w-full h-full object-cover bg-black rounded" muted></video><i class="fa-solid fa-play text-white absolute inset-0 m-auto w-fit h-fit drop-shadow-md text-xs"></i></div>`
-                    : `<img src="${firstPhoto}" class="w-12 h-12 object-cover rounded shadow-sm border border-gray-200">`;
+                    ? `<div class="relative w-20 h-12"><video src="${firstPhoto}" class="w-full h-full object-cover bg-black rounded" muted></video><i class="fa-solid fa-play text-white absolute inset-0 m-auto w-fit h-fit drop-shadow-md text-xs"></i></div>`
+                    : `<img src="${firstPhoto}" class="w-20 h-12 object-cover rounded shadow-sm border border-gray-200">`;
                 
                 photoHTML = `<div class="cursor-pointer hover:opacity-80 transition shrink-0" onclick="window.initGallery(window.galleryCache[${photoKey}]); document.getElementById('imageModal').classList.remove('hidden');">${photoThumb}</div>`;
             } else {
-                // Placeholder icon for users without a photo
-                photoHTML = `<div class="w-12 h-12 bg-gray-100 rounded border border-gray-200 flex items-center justify-center shrink-0"><i class="fas fa-user text-gray-300 text-xl"></i></div>`;
+                // Placeholder icon for users without a photo (rectangular to match layout)
+                photoHTML = `<div class="w-20 h-12 bg-gray-100 rounded border border-gray-200 flex items-center justify-center shrink-0"><i class="fas fa-user text-gray-300 text-xl"></i></div>`;
             }
 
             // Conditional ID text (hides completely if no ID)
@@ -196,34 +200,38 @@ function populateTable(data) {
   <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col gap-3 relative">
     
     <div class="flex justify-between items-start gap-3">
-      <div class="flex-1 min-w-0">
-        <h3 class="font-bold text-gray-900 text-lg truncate capitalize">${r.name || "Anonymous"}</h3>
-        ${idHTML}
-      </div>
-      <div class="flex flex-col items-end gap-2">
-        ${photoHTML}
-        <div class="text-right">
-          <span class="text-[10px] text-gray-400 block mb-0.5">${formattedDate}</span>
-          <div class="flex items-center justify-end gap-1">
-            <span class="bg-gray-100 text-gray-600 text-[10px] px-2 py-1 rounded border border-gray-200 font-mono">
-              #${r.trackingId}
-            </span>
-            <span class="text-[10px] px-2 py-1 rounded-md font-bold text-white ${r.priority === 'Emergency' ? 'bg-red-600' : r.priority === 'High' ? 'bg-yellow-500' : 'bg-green-600'}">
-              ${r.priority}
-            </span>
-          </div>
+      
+      <div class="flex-1 min-w-0 flex flex-col justify-center"> 
+        <h3 class="font-bold text-gray-900 text-lg truncate capitalize leading-tight mb-1">${r.name || "Anonymous"}</h3>
+        
+        <div class="text-xs text-gray-500 flex items-center flex-wrap gap-2">
+           ${idHTML ? `<span>${idHTML}</span> <span class="text-gray-300">|</span>` : ''}
+           <span class="flex items-center"><i class="far fa-calendar-alt mr-1.5 opacity-70"></i>${formattedDate}</span>
         </div>
+      </div>
+
+      <div class="shrink-0">
+        ${photoHTML}
       </div>
     </div>
 
-    <div>
-      <div class="mb-2">
-         <span class="text-xs font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-full border border-green-100 capitalize">
+    <div class="mt-1">
+      <div class="mb-3 flex items-center gap-2 flex-wrap">
+         <span class="text-xs font-semibold text-green-700 bg-green-50 px-2.5 py-1 rounded-md border border-green-100 capitalize">
            ${r.category}
          </span>
+         
+         <span class="text-[10px] text-gray-400 font-mono bg-gray-50 px-2 py-1 rounded border border-gray-100">
+           #${r.trackingId}
+         </span>
+
+         <span class="text-[10px] px-2 py-0.5 rounded-full font-bold text-white shadow-sm ${r.priority === 'Emergency' ? 'bg-red-600' : r.priority === 'High' ? 'bg-yellow-500' : 'bg-green-600'}">
+          ${r.priority}
+         </span>
       </div>
-      <div class="mb-2">
-        <p class="text-sm text-gray-600 line-clamp-2 leading-relaxed cursor-pointer hover:text-green-800 transition capitalize"
+
+      <div class="mb-3">
+        <p class="text-sm text-gray-700 line-clamp-2 leading-relaxed cursor-pointer hover:text-green-800 transition"
            onclick="document.getElementById('modalDescriptionText').textContent = \`${r.description.replace(/`/g, "\\`")}\`; document.getElementById('descriptionModal').classList.remove('hidden');">
           ${r.description}
         </p>
@@ -232,10 +240,11 @@ function populateTable(data) {
           (Tap to read full)
         </span>
       </div>
-      <p class="text-xs text-gray-500 flex items-center gap-1 cursor-pointer hover:text-green-700 transition"
+
+      <p class="text-xs text-gray-500 flex items-start gap-1.5 cursor-pointer hover:text-green-700 transition"
          onclick="openAddressModal({ address: '${r.address.replace(/'/g, "&apos;")}', lat: ${r.latitude}, lng: ${r.longitude} })">
-        <i class="fas fa-map-marker-alt text-red-500"></i> 
-        <span class="underline decoration-dotted truncate">${r.address}</span>
+        <i class="fas fa-map-marker-alt text-red-500 mt-0.5"></i> 
+        <span class="underline decoration-dotted leading-tight">${r.address}</span>
       </p>
     </div>
 
