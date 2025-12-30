@@ -58,7 +58,7 @@ function displayEvidenceFiles(areaPhoto) {
                 ${files.map((file, index) => {
                     const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(file);
                     return `
-                        <div class="relative group cursor-pointer w-48 h-40 flex-shrink-0" onclick="openModal('${file}', ${isVideo})">
+                        <div class="relative group cursor-pointer w-[48%] sm:w-48 h-56 sm:h-40 flex-shrink-0" onclick="openModal('${file}', ${isVideo})">
                             ${isVideo ? 
                                 `<video class="w-full h-full bg-black rounded border hover:opacity-80 transition object-cover" preload="metadata">
                                     <source src="${file}">
@@ -94,7 +94,13 @@ document.getElementById("trackBtn").addEventListener("click", async () => {
 
     try {
         container.classList.remove("hidden");
-        details.innerHTML = `<p class="text-gray-700">Searching...</p>`;
+        details.innerHTML = `
+            <div class="animate-pulse space-y-4">
+                <div class="h-6 bg-gray-200 rounded w-3/4 mx-auto"></div>
+                <div class="h-32 bg-gray-200 rounded w-full"></div>
+                <div class="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+            </div>
+        `;
 
         const response = await fetch(`/api/reports/${trackingId}`);
         const result = await response.json();

@@ -8,83 +8,143 @@
     <script src="https://cdn.tailwindcss.com"></script>
      <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* Fade In Animation */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.7s ease-in-out;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
 </head>
-<body class="relative bg-gray-100">
+<body class="flex flex-col min-h-screen bg-gray-50">
 
-  <!-- Header -->
   <div id="header-placeholder"></div>
 
-    <!-- Page Title Section -->
-    <section class="py-20 mt-12">
-        <div class="max-w-4xl mx-auto text-center px-20">
-        <h2 class="text-3xl font-bold text-green-900 mb-6 text-center">Emergency Hotlines</h2>
-        <p class="text-gray-700 mb-8 text-center">
-            Contact the relevant emergency services in yout barangay immediately.
-        </p>
-        </div>
-    </section>
+  <section class="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden mt-0">
+      
+      <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover z-0">
+          <source src="Images/PBvid.mp4" type="video/mp4">
+      </video>
+      
+      <div class="absolute inset-0 bg-black/60 z-10"></div>
+      
+      <div class="relative z-20 text-center text-white px-4 fade-in mt-16">
+          <h2 class="text-4xl md:text-5xl font-extrabold mb-3 tracking-tight drop-shadow-lg">
+              Emergency Hotlines
+          </h2>
+          <p class="text-gray-100 text-base md:text-lg max-w-2xl mx-auto font-medium drop-shadow-md">
+              Keep these numbers ready. Immediate assistance for your safety and security.
+          </p>
+      </div>
 
-    <!-- Main Content -->
-    <main class="bg-gray-100 py-2 mt-[-2rem]">
-        <div class="max-w-6xl mx-auto px-3 text-center mb-20">
-            <div class="grid gap-8 sm:grid-cols-3 lg:grid-cols-4">
+      <div class="absolute bottom-0 w-full h-32 bg-gradient-to-b from-transparent to-gray-50 z-20"></div>
+  </section>
+
+  <main class="relative z-30 bg-gray-50 pb-20 pt-8">
+      <div class="max-w-6xl mx-auto px-4 text-center">
+          <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 fade-in">
 
                 <!-- Police -->
-                <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl ">
-                    <img src="Images/police-badge.png" alt="Police" class="mx-auto w-20 h-20 mb-4">
-                    <h3 class="text-2xl font-semibold text-green-900 mb-2">Police</h3>
-                    <p class="text-gray-700 mb-8 text-center">
-                      Contact the police to report crimes or keep your community safe.
+                <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition duration-300 border-t-4 border-blue-500 group fade-in">
+                    <div class="w-20 h-20 mx-auto mb-6 bg-blue-50 rounded-full flex items-center justify-center text-blue-700 text-4xl group-hover:scale-110 transition">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">Police</h3>
+                    <p class="text-gray-500 mb-6 text-sm leading-relaxed">
+                      Contact the police to report crimes.
                     </p>
-                    <p>
-                        <a class="call-btn inline-block bg-green-900 text-white px-5 py-2 rounded-lg hover:bg-green-800 transition cursor-pointer" onclick="alert('Calling 117...'); ">Call 117</a>
-                    </p>
+                    <button onclick="copyToClipboard('117', this)" class="w-full bg-blue-700 text-white font-semibold px-5 py-3 rounded-xl hover:bg-blue-800 shadow-md hover:shadow-lg transition flex items-center justify-center">
+                        <i class="fa-solid fa-copy mr-2"></i> Copy 117
+                    </button>
                 </div>
 
                 <!-- Fire Department -->
-                <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl ">
-                    <img src="Images/fire-station.png" alt="Fire" class="mx-auto w-20 h-20 mb-4">
-                    <h3 class="text-2xl font-semibold text-green-900 mb-2">Fire Department</h3>
-                    <p class="text-gray-700 mb-8 text-center">
-                      Call the fire department for fires, gas leaks, or rescue emergencies.
+                <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition duration-300 border-t-4 border-red-500 group fade-in">
+                    <div class="w-20 h-20 mx-auto mb-6 bg-red-50 rounded-full flex items-center justify-center text-red-600 text-4xl group-hover:scale-110 transition">
+                        <i class="fa-solid fa-fire"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">Fire Department</h3>
+                    <p class="text-gray-500 mb-6 text-sm leading-relaxed">
+                      Call immediately for fires, gas leaks, or rescue emergencies.
                     </p>
-                    <p>
-                        <a class="call-btn inline-block bg-green-900 text-white px-5 py-2 rounded-lg hover:bg-green-800 transition cursor-pointer" onclick="alert('Calling 160...');">Call 160</a>
-                    </p>
+                    <button onclick="copyToClipboard('160', this)" class="w-full bg-red-600 text-white font-semibold px-5 py-3 rounded-xl hover:bg-red-700 shadow-md hover:shadow-lg transition flex items-center justify-center">
+                        <i class="fa-solid fa-copy mr-2"></i> Copy 160
+                    </button>
                 </div>
 
                 <!-- Ambulance -->
-                <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl ">
-                    <img src="Images/siren.png" alt="Ambulance" class="mx-auto w-20 h-20 mb-4">
-                    <h3 class="text-2xl font-semibold text-green-900 mb-2">Ambulance</h3>
-                    <p class="text-gray-700 mb-8 text-center">
-                      Contact the ambulance for accidents, injuries, or medical emergencies.
+                <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition duration-300 border-t-4 border-orange-500 group fade-in">
+                    <div class="w-20 h-20 mx-auto mb-6 bg-orange-50 rounded-full flex items-center justify-center text-orange-600 text-4xl group-hover:scale-110 transition">
+                        <i class="fa-solid fa-ambulance"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">Ambulance</h3>
+                    <p class="text-gray-500 mb-6 text-sm leading-relaxed">
+                      Contact immediately for accidents, injuries, or medical emergencies.
                     </p>
-                    <p>
-                        <a class="call-btn inline-block bg-green-900 text-white px-5 py-2 rounded-lg hover:bg-green-800 transition cursor-pointer" onclick="alert('Calling 155...');">Call 155</a>
-                    </p>
+                    <button onclick="copyToClipboard('155', this)" class="w-full bg-orange-600 text-white font-semibold px-5 py-3 rounded-xl hover:bg-orange-700 shadow-md hover:shadow-lg transition flex items-center justify-center">
+                        <i class="fa-solid fa-copy mr-2"></i> Copy 155
+                    </button>
                 </div>
 
                 <!-- Barangay Hall -->
-                <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl ">
-                    <img src="Images/Logo.png" alt="Barangay Hall" class="mx-auto w-20 h-20 mb-4">
-                    <h3 class="text-2xl font-semibold text-green-900 mb-2">Barangay Hall</h3>
-                    <p class="text-gray-700 mb-8 text-center">
-                      Reach out to the barangay hall for support with local issues or public services.
+                <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition duration-300 border-t-4 border-green-500 group fade-in">
+                    <div class="w-20 h-20 mx-auto mb-6 bg-green-50 rounded-full flex items-center justify-center text-green-700 text-4xl group-hover:scale-110 transition">
+                        <i class="fa-solid fa-building"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">Barangay Hall</h3>
+                    <p class="text-gray-500 mb-6 text-sm leading-relaxed">
+                      Reach out for support with local issues or public services.
                     </p>
-                    <p>
-                        <a class="call-btn inline-block bg-green-900 text-white px-5 py-2 rounded-lg hover:bg-green-800 transition cursor-pointer" onclick="alert('Calling (02) 1234-5678...');">Call (02) 1234-5678</a>
-                    </p>
+                    <button onclick="copyToClipboard('(02) 1234-5678', this)" class="w-full bg-green-700 text-white font-semibold px-5 py-3 rounded-xl hover:bg-green-800 shadow-md hover:shadow-lg transition flex items-center justify-center">
+                        <i class="fa-solid fa-copy mr-2"></i> Copy Number
+                    </button>
                 </div>
 
             </div>
         </div>
-    </main>
+  </main>
 
-  <!-- Footer -->
-  <div id="footer-placeholder"></div>
+  <div id="footer-placeholder" class="mt-auto"></div>
+
+  <!-- Clipboard Copy Function -->
+  <script>
+    function copyToClipboard(number, button) {
+      // Copy the number to clipboard
+      navigator.clipboard.writeText(number).then(() => {
+        
+        // Save original content
+        const originalContent = button.innerHTML;
+        
+        // Visual Feedback: 
+        // 1. Change Text
+        button.innerHTML = '<i class="fa-solid fa-check mr-2"></i> Copied!';
+        
+        // 2. Force Green Background (using inline style to override Tailwind classes safely)
+        button.style.backgroundColor = '#16a34a'; // This is Tailwind's green-600
+        button.style.borderColor = '#16a34a';
+
+        // Revert back after 2 seconds
+        setTimeout(() => {
+          button.innerHTML = originalContent;
+          // Clear inline styles so the original Tailwind classes (Blue/Red/Orange) work again
+          button.style.backgroundColor = '';
+          button.style.borderColor = '';
+        }, 2000);
+
+      }).catch(err => {
+        console.error('Failed to copy: ', err);
+        alert("Failed to copy number. Please try again.");
+      });
+    }
+  </script>
 
   <script type="module" src="js/script.js"></script>
+  <script type="module" src="js/modules/animations.js"></script>
   <script src="js/loader.js"></script>
 </body>
 </html>

@@ -81,7 +81,7 @@
 
   <div id="header-placeholder"></div>
          
-  <section class="relative h-96 flex items-center justify-center overflow-hidden mt-16">
+  <section class="relative h-96 flex items-center justify-center overflow-hidden mt-24 md:mt-20">
     <div class="video-banner">
       <video autoplay muted loop playsinline>
         <source src="Images/PBvid.mp4" type="video/mp4">
@@ -90,8 +90,8 @@
     </div>
     
     <div class="video-overlay text-center text-white px-4">
-      <h1 class="text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-lg">E-Sumbong Kay Kap!</h1>
-      <p class="text-lg md:text-xl text-green-100 font-light max-w-2xl mx-auto">
+      <h1 class="text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-lg fade-in">E-Sumbong Kay Kap!</h1>
+      <p class="text-lg md:text-xl text-green-100 font-light max-w-2xl mx-auto fade-in">
         Building a better Barangay through connection, action, and care.
       </p>
     </div>
@@ -138,7 +138,7 @@
     </section>
 
     <section class="relative bg-white py-20 px-0 fade-in border-t border-gray-200">
-      <div class="w-full px-10 mx-auto">
+      <div class="w-full px-4 md:px-10 mx-auto">
 
         <div class="text-center mb-16">
           <h2 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-800 tracking-wide inline-block">
@@ -229,7 +229,7 @@
 
           <img src="${member.img}" alt="${member.name}" class="w-40 h-40 rounded-full mb-5 object-cover glow border-4 border-white shadow-sm">
           
-          <h4 class="text-base font-extrabold text-green-900 whitespace-nowrap tracking-tight mb-1 w-full overflow-hidden text-ellipsis" title="${member.name}">
+          <h4 class="text-base font-extrabold text-green-900 leading-tight mb-1 w-full" title="${member.name}">
             ${member.name}
           </h4>
           
