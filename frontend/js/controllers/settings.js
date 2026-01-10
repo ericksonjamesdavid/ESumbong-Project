@@ -202,6 +202,7 @@ function handlePasswordUpdateError(btn, originalText, result, currentInput) {
     toggleInputStatus(currentInput, false); // Turn Red
     currentInput.classList.add("animate-pulse");
     setTimeout(() => currentInput.classList.remove("animate-pulse"), 500);
+    errorMsg = "Current password is incorrect";
   }
 
   showPasswordError(errorMsg);

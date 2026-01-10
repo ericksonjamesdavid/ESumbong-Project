@@ -355,6 +355,14 @@ async function handleStatusChange(e) {
             refreshAuditLog();
         }
         
+        // Refresh charts to show updated resolved count
+        if (typeof window.refreshUserCharts === 'function') {
+            window.refreshUserCharts();
+        }
+        
+        // Reload reports to update the UI (disable dropdown if status is Resolved)
+        await loadReports();
+        
         alert('Status updated!');
     } catch (err) { 
         alert('Network error'); 
