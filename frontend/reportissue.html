@@ -86,7 +86,8 @@
             <div id="barangayIdPreview" class="preview-container flex flex-wrap gap-2">
             </div>
 
-            <input id="barangayIdUpload" type="file" accept="image/jpeg,image/png" class="hidden" name="barangayIdFile" />
+            <input id="barangayIdUpload" type="file" accept="image/jpeg,image/png" class="hidden"
+              name="barangayIdFile" />
           </label>
         </div>
       </div>
@@ -113,15 +114,15 @@
       <!-- Description -->
       <div>
         <label>Description<span class="text-red-600">*</span></label>
-        <textarea id="description" required class="w-full border rounded px-4 py-3"
-          placeholder="Describe the issue..." maxlength="500"></textarea>
+        <textarea id="description" required class="w-full border rounded px-4 py-3" placeholder="Describe the issue..."
+          maxlength="500"></textarea>
         <div class="text-right text-sm text-gray-500 mt-1">
           <span id="descriptionCounter">0</span>/500 characters
         </div>
       </div>
 
       <!-- Evidence -->
-       <div>
+      <div>
         <label class="block mb-2 font-medium">Evidence<span class="text-red-600">*</span></label>
 
         <div class="flex items-center justify-center w-full">
@@ -227,13 +228,40 @@
     </div>
 
     <!-- Success Modal -->
-    <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div id="successModal" class="fixed inset-0 bg-black/30 backdrop-blur-sm hidden flex items-center justify-center z-50">
       <div class="bg-white p-6 rounded shadow-lg text-center w-full max-w-sm mx-4">
         <h2 class="text-lg mb-3">Submitted Successfully!</h2>
         <p class="text-sm mb-3">Your tracking ID:</p>
-        <p id="trackCode" class="text-green-700 text-xl font-semibold mb-4"></p>
-        <p class="text-xs mb-3">You can track your report's progress in the Track Reports</p>
-        <button id="closeSuccessBtn" class="px-4 py-2 bg-green-700 text-white rounded">Close</button>
+
+        <div class="relative bg-green-50 border-2 border-dashed border-green-300 rounded-lg p-3 mb-5 flex items-center justify-center mx-auto w-full max-w-[280px] group hover:bg-green-100 transition-colors duration-300">
+          
+          <span id="trackCode" class="text-green-800 text-xl font-bold font-mono tracking-wider w-full text-center"></span>
+
+          <button id="copyTrackBtn" class="absolute right-3 top-1/2 -translate-y-1/2 text-green-400 hover:text-green-700 transition-all duration-200 flex items-center justify-center" title="Copy to Clipboard">
+            <i class="fa-regular fa-copy text-lg"></i>
+          </button>
+
+        </div>
+
+        <div class="bg-amber-50 border-l-4 border-amber-400 p-3 mb-4 text-left rounded-r">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <i class="fa-solid fa-triangle-exclamation text-amber-500 mt-0.5"></i>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm text-amber-800 font-medium">Important:</p>
+              <p class="text-xs text-amber-700 mt-1">
+                Please <strong>copy</strong> or <strong>screenshot</strong> this ID now. You will need it to track the status of your report.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <p class="text-xs text-gray-500 mb-4">You can use this ID on the "Track Reports" page.</p>
+
+        <button id="closeSuccessBtn" class="w-full px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded transition-colors shadow-sm">
+          I have saved my ID
+        </button>
       </div>
     </div>
 
@@ -285,7 +313,7 @@
     // Full Name capitalization on input
     const fullnameInput = document.getElementById('fullname');
     if (fullnameInput) {
-      fullnameInput.addEventListener('blur', function() {
+      fullnameInput.addEventListener('blur', function () {
         this.value = toTitleCase(this.value);
       });
     }
@@ -293,7 +321,7 @@
     // Other Category capitalization on input
     const otherCategoryInput = document.getElementById('otherCategory');
     if (otherCategoryInput) {
-      otherCategoryInput.addEventListener('blur', function() {
+      otherCategoryInput.addEventListener('blur', function () {
         this.value = toTitleCase(this.value);
       });
     }
@@ -301,7 +329,7 @@
     // Category select - ensure proper formatting
     const categorySelect = document.getElementById('category');
     if (categorySelect) {
-      categorySelect.addEventListener('change', function() {
+      categorySelect.addEventListener('change', function () {
         // Category values are already properly formatted in the options
         // This ensures consistency if needed
       });
@@ -310,9 +338,9 @@
     // Description character counter
     const descriptionTextarea = document.getElementById('description');
     const descriptionCounter = document.getElementById('descriptionCounter');
-    
+
     if (descriptionTextarea && descriptionCounter) {
-      descriptionTextarea.addEventListener('input', function() {
+      descriptionTextarea.addEventListener('input', function () {
         const count = this.value.length;
         descriptionCounter.textContent = count;
         if (count > 500) {
@@ -323,10 +351,36 @@
       });
     }
 
+    // Copy Tracking ID Logic
+    const copyTrackBtn = document.getElementById('copyTrackBtn');
+    const trackCodeDisplay = document.getElementById('trackCode');
+
+    if (copyTrackBtn && trackCodeDisplay) {
+      copyTrackBtn.addEventListener('click', () => {
+        const codeToCopy = trackCodeDisplay.textContent;
+
+        if (codeToCopy) {
+          navigator.clipboard.writeText(codeToCopy).then(() => {
+            // Visual feedback: Change icon to checkmark temporarily
+            const originalIcon = copyTrackBtn.innerHTML;
+            copyTrackBtn.innerHTML = '<i class="fa-solid fa-check text-green-600"></i>';
+
+            // Revert back after 2 seconds
+            setTimeout(() => {
+              copyTrackBtn.innerHTML = originalIcon;
+            }, 2000);
+          }).catch(err => {
+            console.error('Failed to copy text: ', err);
+            alert("Failed to copy. Please manually copy the ID.");
+          });
+        }
+      });
+    }
+
     // Capitalize form data before submission (ensures database storage with proper capitalization)
     const reportForm = document.getElementById('reportForm');
     if (reportForm) {
-      reportForm.addEventListener('submit', function(e) {
+      reportForm.addEventListener('submit', function (e) {
         // Capitalize full name
         const fullname = document.getElementById('fullname');
         if (fullname && fullname.value.trim()) {

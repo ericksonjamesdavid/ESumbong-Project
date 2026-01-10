@@ -102,21 +102,8 @@ export const initReportSubmission = () => {
                 }
 
                 if (result.success) {
+                    // Set only the tracking ID in the trackCode element (for copy functionality)
                     document.getElementById('trackCode').textContent = result.trackingId;
-                    
-                    // Add reminder message about tracking ID
-                    const trackingIdElement = document.getElementById('trackCode');
-                    if (trackingIdElement) {
-                        trackingIdElement.innerHTML = `
-                            <div class="mb-4">
-                                <p class="text-sm text-orange-600 font-semibold mb-2">PLEASE REMEMBER YOUR TRACKING ID</p>
-                                <p class="text-lg font-mono font-bold text-green-800 bg-green-50 p-3 rounded border-2 border-green-200">
-                                    ${result.trackingId}
-                                </p>
-                                <p class="text-xs text-gray-600 mt-2">You will need this ID to track your report status. Consider saving or screenshotting this ID.</p>
-                            </div>
-                        `;
-                    }
                     
                     document.getElementById('successModal').classList.remove('hidden');
                     // Clear form and previews so user can submit again immediately
