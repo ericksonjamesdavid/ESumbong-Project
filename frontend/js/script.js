@@ -5,7 +5,7 @@
 
 import { initAnimationObserver, initHomePageSetup } from './modules/animations.js';
 import { initAnnouncementsAndNews } from './modules/announcementsNews.js';
-import { initDashboardCharts } from './modules/charts.js';
+import { initDashboardCharts } from './modules/chartsUser.js';
 import { initReportMap, initDefaultDate } from './modules/map.js';
 import { initBarangayIdUpload, initEvidenceUpload } from './modules/fileUpload.js';
 import { initAnonymousToggle, initCategoryLogic } from './modules/reportForm.js';

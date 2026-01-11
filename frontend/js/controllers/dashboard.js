@@ -6,7 +6,7 @@
 
 import { initReports } from './reports.js';
 import { initContent } from './content.js';
-import { initCharts } from './charts.js';
+import { initCharts } from './chartsAdmin.js';
 import { initAudit, refreshAuditLog } from './audit.js';
 import { initSuggestions } from './suggestions.js';
 

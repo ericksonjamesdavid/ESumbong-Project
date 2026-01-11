@@ -4,7 +4,7 @@
 
 import { barangayIdFiles, evidenceFiles } from './fileUpload.js';
 import { generateTrackingID, resetFormLayout } from './reportForm.js';
-import { initDashboardCharts } from './charts.js';
+import { initDashboardCharts } from './chartsUser.js';
 import { clearReportMarker } from './map.js';
 
 export const initReportSubmission = () => {
@@ -106,6 +106,20 @@ export const initReportSubmission = () => {
                     document.getElementById('trackCode').textContent = result.trackingId;
                     
                     document.getElementById('successModal').classList.remove('hidden');
+
+                    // Optimistic UI update: push a minimal report locally so charts update immediately
+                    try {
+                        const fd = window.currentFormData;
+                        if (fd && typeof window.addReport === 'function') {
+                            const optimistic = {
+                                date: new Date().toISOString(),
+                                category: fd.get('category') || 'Other',
+                                status: 'submitted'
+                            };
+                            window.addReport(optimistic);
+                        }
+                    } catch (e) { console.error('Optimistic chart update failed:', e); }
+
                     // Clear form and previews so user can submit again immediately
                     reportForm.reset();
                     window.currentFormData = null;
