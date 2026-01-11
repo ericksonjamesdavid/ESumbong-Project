@@ -1,0 +1,135 @@
+<div id="addressModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+  <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-2xl">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-semibold text-green-900">Report Location</h2>
+      <button id="closeAddressModal" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+    </div>
+
+    <p id="modalAddressText" class="text-gray-700 mb-4 text-lg"></p>
+
+    <div id="modalMap" style="height: 400px; width: 100%;" class="rounded-lg shadow-md relative z-0"></div>
+  </div>
+</div>
+
+<div id="descriptionModal"
+  class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+  <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-lg">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-semibold text-green-900">Report Description</h2>
+      <button id="closeDescriptionModal" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+    </div>
+
+    <p id="modalDescriptionText" class="text-gray-700 text-base leading-relaxed whitespace-pre-wrap"></p>
+  </div>
+</div>
+
+<div id="announcementModal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"></div>
+
+  <div class="relative flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl transform transition-all scale-100 p-6 md:p-8 max-h-[90vh] overflow-y-auto">
+
+      <div class="flex justify-between items-center mb-6">
+        <h3 id="annModalTitle" class="text-2xl font-bold text-green-900">New Announcement</h3>
+        <button id="closeAnnModal" class="text-gray-400 hover:text-gray-600 transition">
+          <i class="fas fa-times text-xl"></i>
+        </button>
+      </div>
+
+      <div class="space-y-5">
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Title</label>
+          <input id="announcementTitle" type="text" placeholder="e.g., Community Clean-up" maxlength="40"
+            class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition outline-none text-gray-800 font-medium text-base md:text-sm">
+          <div class="text-right text-xs text-gray-500 mt-1">
+            <span id="announcementTitleCounter">0</span>/40 characters
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Description</label>
+          <textarea id="announcementDescription" rows="5" placeholder="Enter the full details here..." maxlength="200"
+            class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition outline-none text-gray-800 resize-none text-base md:text-sm"></textarea>
+          <div class="text-right text-xs text-gray-500 mt-1">
+            <span id="announcementCounter">0</span>/200 characters
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3 mt-8 pt-4 border-t border-gray-100">
+        <button id="cancelAnnouncementBtn"
+          class="px-5 py-2.5 rounded-lg text-gray-600 hover:bg-gray-100 font-medium transition">
+          Cancel
+        </button>
+        <button id="uploadAnnouncementBtn"
+          class="px-6 py-2.5 rounded-lg bg-green-900 text-white font-medium hover:bg-green-800 shadow-md hover:shadow-lg transition">
+          Publish
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="newsModal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"></div>
+
+  <div class="relative flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl transform transition-all scale-100 p-6 md:p-8 max-h-[90vh] overflow-y-auto">
+
+      <div class="flex justify-between items-center mb-6">
+        <h3 id="newsModalTitle" class="text-2xl font-bold text-emerald-800">New News Article</h3>
+        <button id="closeNewsModal" class="text-gray-400 hover:text-gray-600 transition">
+          <i class="fas fa-times text-xl"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Headline</label>
+          <input id="newsTitle" type="text" placeholder="e.g., DepEd declares wellness break" maxlength="100"
+            class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition outline-none text-base md:text-sm">
+          <div class="text-right text-xs text-gray-500 mt-1">
+            <span id="newsTitleCounter">0</span>/100 characters
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Summary</label>
+          <textarea id="newsDescription" rows="3" placeholder="Short summary of the news..." maxlength="400"
+            class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition outline-none resize-none text-base md:text-sm"></textarea>
+          <div class="text-right text-xs text-gray-500 mt-1">
+            <span id="newsCounter">0</span>/400 characters
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Image
+              URL</label>
+            <input id="newsImage" type="text" placeholder="https://..."
+              class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition outline-none text-base md:text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Source
+              Link</label>
+            <input id="newsLink" type="text" placeholder="https://..."
+              class="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition outline-none text-base md:text-sm">
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3 mt-8 pt-4 border-t border-gray-100">
+        <button id="cancelNewsBtn"
+          class="px-5 py-2.5 rounded-lg text-gray-600 hover:bg-gray-100 font-medium transition">
+          Cancel
+        </button>
+        <button id="uploadNewsBtn"
+          class="px-6 py-2.5 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 shadow-md hover:shadow-lg transition">
+          Publish
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>

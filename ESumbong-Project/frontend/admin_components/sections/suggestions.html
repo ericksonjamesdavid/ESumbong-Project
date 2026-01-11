@@ -1,0 +1,53 @@
+<section id="sectionSuggestions">
+      <div class="mb-4">
+        <h2 class="text-2xl font-semibold text-green-900">Suggestions Mailbox</h2>
+      </div>
+
+      <div class="bg-white border border-gray-300 shadow-md rounded-xl overflow-hidden grid grid-cols-1 md:grid-cols-3 min-h-[600px]">
+
+        <div id="suggestion-list-col" class="md:col-span-1 border-r border-gray-200 bg-gray-50 h-full flex flex-col">
+          <div class="p-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-green-800">Inbox</h3>
+          </div>
+          <div id="suggestion-list" class="h-[60vh] md:h-[550px] overflow-y-auto">
+          </div>
+        </div>
+
+        <div id="suggestion-content-col" class="hidden md:block md:col-span-2 p-6">
+
+          <button id="back-to-inbox-btn" onclick="closeMobileSuggestion()"
+            class="md:hidden mb-4 text-green-700 font-bold flex items-center gap-2 hover:text-green-800 transition">
+            <i class="fas fa-chevron-left"></i> Back to Inbox
+          </button>
+
+          <div id="suggestion-placeholder" class="text-center text-gray-500 pt-20">
+            <i class="fas fa-inbox text-4xl mb-4"></i>
+            <h3 class="text-xl">Select a suggestion to read</h3>
+            <p>Messages will be displayed here.</p>
+          </div>
+
+          <div id="suggestion-content" class="hidden">
+            <div class="border-b border-gray-200 pb-4 mb-4">
+              <div class="flex justify-between items-center">
+                <div>
+                  <p class="text-sm text-gray-600">Suggestion ID: <span id="suggestion-id"
+                      class="font-semibold text-green-800"></span></p>
+                </div>
+                <p class="text-sm text-gray-600">Date: <span id="suggestion-date" class="font-semibold"></span></p>
+              </div>
+            </div>
+
+            <div class="prose max-w-none">
+              <p id="suggestion-body" class="text-gray-700 leading-relaxed whitespace-pre-wrap"></p>
+            </div>
+
+            <div class="mt-6 border-t border-gray-200 pt-4">
+              <button id="delete-suggestion-btn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                <i class="fas fa-trash-alt mr-2"></i>Delete
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>

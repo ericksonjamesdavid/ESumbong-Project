@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account Settings</title>
+  <link rel="icon" type="image/png" href="/Images/Logo.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body class="flex flex-col min-h-screen">
+
+  <!-- Account Settings Section -->
+  <main class="flex-grow pt-24 pb-12 px-4 md:px-8 bg-gray-50">
+
+    <div class="max-w-6xl mx-auto">
+      <div class="mb-8">
+        <h2 class="text-3xl font-bold text-gray-800">Account Settings</h2>
+        <p class="text-gray-500 text-sm">Manage system security and administrative access.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <div class="lg:col-span-1 space-y-6">
+
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="h-24 bg-gradient-to-r from-green-800 to-green-600"></div>
+
+            <div class="px-6 pb-6 text-center relative">
+              <div class="relative -mt-12 mb-4 inline-block">
+                <img src="/Images/Logo.png" alt="Admin"
+                  class="w-24 h-24 rounded-full border-4 border-white shadow-md object-cover bg-white">
+              </div>
+
+              <h3 class="text-xl font-bold text-gray-800 mb-1 animate-pulse" id="displayProfileName">
+                Loading...
+              </h3>
+
+              <div class="flex items-center justify-center gap-2 mb-4">
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  <span class="w-2 h-2 mr-1.5 bg-green-500 rounded-full animate-pulse"></span> Admin
+                </span>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-3">
+            <i class="fa-solid fa-circle-info text-blue-600 mt-1"></i>
+            <p class="text-sm text-blue-800">
+              <strong>Security Tip:</strong> Change your password every 3 months. If you are resigning, use the Handover
+              tool below.
+            </p>
+          </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-8">
+
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+            <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+              <i class="fa-solid fa-shield-halved text-green-700"></i> Personal Security
+            </h3>
+
+            <div class="space-y-5">
+              <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Current
+                  Password</label>
+                <div class="relative">
+                  <input id="currentPass" type="password"
+                    class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition outline-none"
+                    placeholder="••••••••">
+                  <i onclick="togglePassword('currentPass', this)"
+                    class="fa-solid fa-eye-slash absolute right-4 top-3.5 cursor-pointer text-green-700 hover:text-green-600 transition"></i>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">New
+                    Password</label>
+                  <div class="relative">
+                    <input id="newPass" type="password"
+                      class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition outline-none"
+                      placeholder="New secure password">
+                    <i onclick="togglePassword('newPass', this)"
+                      class="fa-solid fa-eye-slash absolute right-4 top-3.5 cursor-pointer text-green-700 hover:text-green-600 transition"></i>
+                  </div>
+
+                  <div id="passwordRules"
+                    class="hidden mt-3 p-3 bg-gray-50 rounded-lg border border-gray-100 text-xs text-gray-500 transition-all duration-300">
+                    <p class="font-bold mb-2 text-gray-700">Password must contain:</p>
+                    <ul class="grid grid-cols-2 gap-y-1">
+                      <li id="rule-length" class="flex items-center gap-2"><i class="fa-solid fa-circle text-[6px]"></i>
+                        8+ Characters</li>
+                      <li id="rule-upper" class="flex items-center gap-2"><i class="fa-solid fa-circle text-[6px]"></i>
+                        Uppercase Letter</li>
+                      <li id="rule-lower" class="flex items-center gap-2"><i class="fa-solid fa-circle text-[6px]"></i>
+                        Lowercase Letter</li>
+                      <li id="rule-number" class="flex items-center gap-2"><i class="fa-solid fa-circle text-[6px]"></i>
+                        Number</li>
+                      <li id="rule-symbol" class="flex items-center gap-2"><i class="fa-solid fa-circle text-[6px]"></i>
+                        Symbol (@$!%*?&)</li>
+                    </ul>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Confirm New
+                    Password</label>
+                  <div class="relative">
+                    <input id="confirmPass" type="password"
+                      class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition outline-none"
+                      placeholder="Repeat password">
+                    <i onclick="togglePassword('confirmPass', this)"
+                      class="fa-solid fa-eye-slash absolute right-4 top-3.5 cursor-pointer text-green-700 hover:text-green-600 transition"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div id="passwordError" class="hidden"></div>
+
+              <div class="flex items-center justify-end gap-2 pt-2">
+                <input type="checkbox" id="logoutAfterUpdate"
+                  class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer" checked>
+                <label for="logoutAfterUpdate" class="text-xs text-gray-600 cursor-pointer select-none">Log out after
+                  update</label>
+              </div>
+
+              <div class="pt-2 text-right">
+                <button onclick="updatePassword()"
+                  class="bg-gray-900 text-white px-6 py-2.5 rounded-lg hover:bg-black transition shadow-md text-sm font-semibold">
+                  Update Credentials
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="border border-orange-200 rounded-2xl overflow-hidden bg-white">
+            <div class="bg-orange-50 px-6 py-4 border-b border-orange-100 flex items-center gap-3">
+              <div class="p-2 bg-orange-100 rounded-full text-orange-700">
+                <i class="fa-solid fa-people-arrows"></i>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-orange-900">Account Transfer</h3>
+                <p class="text-xs text-orange-800">Manage ownership transfer and administrative handover.</p>
+              </div>
+            </div>
+
+            <div class="p-6">
+              <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div>
+                  <h4 class="font-bold text-gray-800 mb-1">Transfer Account Ownership</h4>
+                  <p class="text-sm text-gray-500 max-w-md">
+                    Resigning or changing roles? This will <strong>reset the password</strong> and log you out
+                    immediately.
+                  </p>
+                </div>
+                <button onclick="confirmHandover()"
+                  class="w-full md:w-auto bg-white border-2 border-red-100 text-red-600 px-5 py-2.5 rounded-lg hover:bg-red-50 hover:border-red-200 transition font-bold whitespace-nowrap text-sm">
+                  Transfer Account
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="bg-green-900 text-white text-center py-6">
+    <p>&copy; 2025 Barangay Reporting System. All rights reserved.</p>
+  </footer>
+
+  <!-- PIN Verification Modal for Handover -->
+  <div id="handoverPinModal"
+    class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-[100] p-4 backdrop-blur-sm transition-opacity">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100">
+
+      <div class="bg-green-900 text-white p-4 flex justify-between items-center">
+        <h3 class="font-bold text-lg text-gray-100"><i class="fa-solid fa-shield-halved mr-2"></i>Security Check</h3>
+        <button onclick="closeHandoverPinModal()" class="text-white hover:text-gray-400 transition"><i
+            class="fa-solid fa-times text-xl"></i></button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <div class="text-center">
+          <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i class="fa-solid fa-lock text-2xl text-green-700"></i>
+          </div>
+          <p class="text-gray-600 text-sm">Identity Verification Required. Please enter your <strong>4-Digit Security
+              PIN</strong> to authorize this transfer.</p>
+        </div>
+
+        <div>
+          <input type="password" id="handoverPinInput" maxlength="4" placeholder="• • • •"
+            class="w-full text-center text-2xl tracking-widest border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 font-mono transition"
+            onkeypress="if(event.key=='Enter') verifyHandoverPin()">
+        </div>
+
+        <p id="handoverPinError" class="text-red-600 text-sm font-semibold hidden text-center"></p>
+
+      </div>
+
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+        <button onclick="closeHandoverPinModal()"
+          class="px-4 py-2 text-gray-600 font-medium hover:bg-gray-200 rounded-lg transition">
+          Cancel
+        </button>
+        <button onclick="verifyHandoverPin()"
+          class="w-full bg-green-700 text-white font-bold py-2 rounded-lg hover:bg-green-800 transition">
+          Verify PIN
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Handover Modal -->
+  <div id="handoverModal"
+    class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden flex items-center justify-center z-[100] backdrop-blur-sm p-4 transition-opacity">
+    <div
+      class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform scale-100 transition-transform">
+
+      <div class="bg-green-900 px-6 py-4 border-b border-green-800 flex items-center justify-between">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-user-shield"></i> Account Handover
+        </h3>
+        <button onclick="closeHandoverModal()" class="text-white hover:text-gray-400 transition">
+          <i class="fa-solid fa-times text-xl"></i>
+        </button>
+      </div>
+
+      <div class="p-8 space-y-6">
+
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+          <h4 class="font-bold text-red-900 text-sm mb-1">
+            You are transferring this account.
+          </h4>
+          <p class="text-red-800 text-sm mb-2">
+            Please enter the details of the <strong>NEW Administrator</strong>.
+          </p>
+          <p class="text-xs text-red-800 opacity-75 italic">
+            Note: You will be logged out immediately after confirmation.
+          </p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">New Admin Name</label>
+
+          <div class="grid grid-cols-2 gap-4">
+
+            <div class="relative">
+              <input type="text" id="handoverFirstName" placeholder="First Name"
+                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-red-500 outline-none transition">
+            </div>
+
+            <div class="relative">
+              <input type="text" id="handoverLastName" placeholder="Last Name"
+                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-red-500 outline-none transition">
+            </div>
+
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Set New Password</label>
+            <div class="relative">
+              <input type="password" id="handoverPass" placeholder="Create password"
+                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-red-500 outline-none transition">
+              <i onclick="togglePassword('handoverPass', this)"
+                class="fa-solid fa-eye-slash absolute right-4 top-3.5 cursor-pointer text-green-700 hover:text-green-600 transition"></i>
+            </div>
+
+            <div id="handoverRules"
+              class="hidden mt-2 p-2 bg-gray-50 rounded border border-gray-200 text-xs text-gray-500 transition-all duration-300">
+              <ul class="grid grid-cols-1 gap-y-1">
+                <li id="h-rule-upper" class="flex items-center gap-2"><i class="fa-solid fa-circle text-[4px]"></i>
+                  Uppercase</li>
+                <li id="h-rule-lower" class="flex items-center gap-2"><i class="fa-solid fa-circle text-[4px]"></i>
+                  Lowercase</li>
+                <li id="h-rule-number" class="flex items-center gap-2"><i class="fa-solid fa-circle text-[4px]"></i>
+                  Number</li>
+                <li id="h-rule-symbol" class="flex items-center gap-2"><i class="fa-solid fa-circle text-[4px]"></i>
+                  Symbol</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Confirm Password</label>
+            <div class="relative">
+              <input type="password" id="handoverConfirm" placeholder="Repeat password"
+                class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-red-500 outline-none transition">
+              <i onclick="togglePassword('handoverConfirm', this)"
+                class="fa-solid fa-eye-slash absolute right-4 top-3.5 cursor-pointer text-green-700 hover:text-green-600 transition"></i>
+            </div>
+          </div>
+        </div>
+
+        <p id="handoverError" class="text-red-600 text-sm font-semibold hidden text-center"></p>
+
+      </div>
+
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+        <button onclick="closeHandoverModal()"
+          class="px-4 py-2 text-gray-600 font-medium hover:bg-gray-200 rounded-lg transition">
+          Cancel
+        </button>
+        <button onclick="submitHandover()"
+          class="px-6 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 shadow-md transition flex items-center gap-2">
+          <i class="fa-solid fa-right-from-bracket"></i> Transfer & Logout
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="../js/core/auth.js"></script>
+  <script src="../js/utils/headerLoader.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      loadHeaderSidebar('Account Settings');
+    });
+  </script>
+  <script type="module" src="../js/controllers/settings.js"></script>
+
+</body>
+
+</html>

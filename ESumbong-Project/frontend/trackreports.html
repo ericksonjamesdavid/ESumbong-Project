@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Track Reports - Barangay Reporting System</title>
+  <link rel="icon" type="image/png" href="Images/Logo.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body class="flex flex-col min-h-screen bg-gray-100">
+
+  <!-- Header -->
+  <div id="header-placeholder"></div>
+
+
+  <!-- Main Content -->
+  <main class="max-w-3xl mx-auto bg-white shadow-2xl rounded-xl p-8 mt-24 md:mt-40 mb-10 px-4">
+    <h2 class="text-3xl font-bold text-green-900 text-center mb-6">Track Your Report</h2>
+
+    <!-- Tracking Form -->
+    <div class="text-center mb-6">
+
+      <div class="flex justify-center">
+        <p class="text-green-600 text-xs mb-2">Enter your tracking ID to check your report status (ex: <span class="font-mono">XXX-00000000-000</span>)</p>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <input 
+        id="trackingId" 
+        type="text" 
+        placeholder="Enter your Tracking ID"
+        class="border border-gray-300 rounded-lg px-4 py-3 w-full sm:w-auto focus:ring-2 focus:ring-green-700" 
+        />
+       <button 
+        id="trackBtn" 
+        class="bg-green-900 text-white px-4 py-2 rounded hover:bg-green-800 w-full sm:w-auto">
+        Track
+       </button>
+      </div>
+    </div>
+    <!-- Result Section -->
+    <div id="resultContainer" class="hidden border-t border-gray-300 pt-4">
+      <h3 class="text-2xl font-semibold text-center text-green-800 mb-4">Report Details</h3>
+      <div id="reportDetails" class="text-gray-700 text-center space-y-4"></div>
+    </div>
+  </main>
+
+  
+
+    <!-- Footer -->
+  <div id="footer-placeholder"></div>
+
+
+<script src="js/trackreports.js"></script>
+<script src="js/loader.js"></script>
+
+</body>
+</html>
+
+
+
+
+
+
+
