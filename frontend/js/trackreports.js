@@ -13,12 +13,12 @@ function createModal() {
     modal.id = 'imageModal';
     modal.className = 'fixed inset-0 bg-black bg-opacity-75 hidden flex items-center justify-center z-50 p-4';
     modal.innerHTML = `
-        <div class="relative max-w-4xl max-h-96 flex items-center justify-center">
-            <button id="closeModal" class="absolute top-2 right-2 bg-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-200 z-10">
-                <i class="fas fa-times text-lg text-black"></i>
+        <div class="relative max-w-5xl w-full flex items-center justify-center" style="height:80vh;">
+            <button id="closeModal" class="absolute bg-white rounded-full w-12 h-12 flex items-center justify-center hover:bg-gray-200 z-50 cursor-pointer" style="pointer-events: auto; top: 8px; right: 8px;">
+                <i class="fas fa-times text-2xl text-black"></i>
             </button>
-            <img id="modalImage" src="" alt="Enlarged view" class="max-w-full max-h-96 object-contain rounded" />
-            <video id="modalVideo" class="max-w-full max-h-96 rounded hidden" controls></video>
+            <img id="modalImage" src="" alt="Enlarged view" style="width:100%; height:100%; object-fit:contain;" class="rounded" />
+            <video id="modalVideo" style="width:100%; height:100%; object-fit:contain;" class="rounded hidden" controls></video>
         </div>
     `;
     document.body.appendChild(modal);

@@ -267,18 +267,18 @@
 
     <div id="lightboxModal"
       class="fixed inset-0 bg-black bg-opacity-95 hidden flex items-center justify-center z-[100]">
-      <div class="relative max-w-5xl w-full max-h-screen p-4 flex justify-center">
+      <div class="relative max-w-5xl w-full flex justify-center items-center" style="height:80vh;">
 
-        <img id="lightboxImage" class="hidden max-w-full max-h-[85vh] object-contain rounded shadow-2xl" src=""
-          alt="Enlarged Proof">
+        <img id="lightboxImage" class="hidden rounded shadow-2xl" src=""
+          alt="Enlarged Proof" style="width:100%; height:100%; object-fit:contain;">
 
-        <video id="lightboxVideo" class="hidden max-w-full max-h-[85vh] rounded shadow-2xl" controls>
+        <video id="lightboxVideo" class="hidden rounded shadow-2xl" controls style="width:100%; height:100%; object-fit:contain;">
           <source src="" type="video/mp4">
           Your browser does not support the video tag.
         </video>
 
         <button id="closeLightbox"
-          class="absolute -top-2 -right-2 bg-white text-black rounded-full w-10 h-10 font-bold text-xl hover:bg-gray-200 flex items-center justify-center shadow-lg z-50">&times;</button>
+          class="absolute bg-white text-black rounded-full w-10 h-10 font-bold text-xl hover:bg-gray-200 flex items-center justify-center shadow-lg z-50" style="top: 8px; right: 8px;">&times;</button>
       </div>
     </div>
 

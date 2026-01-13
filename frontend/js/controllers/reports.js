@@ -375,7 +375,7 @@ function applyFilters() {
     const range = document.getElementById("dateRangeFilter").value;
     
     filteredReports = allReports.filter(r => {
-        const matchesSearch = !term || [r.name, r.category, r.trackingId].some(f => (f||"").toLowerCase().includes(term));
+        const matchesSearch = !term || [r.name, r.category, r.trackingId, r.status].some(f => (f||"").toLowerCase().includes(term));
         if (!matchesSearch) return false;
 
         if (range === 'all-time') return true;
@@ -402,10 +402,10 @@ function setupImageModal() {
     modal.id = "imageModal";
     modal.className = "fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center hidden z-50 p-4";
     modal.innerHTML = `
-        <div class="relative max-w-4xl w-full flex flex-col items-center">
-            <div id="mediaContainer" class="bg-black rounded overflow-hidden flex justify-center w-full" style="max-height:80vh">
-                <img id="modalImage" class="max-w-full max-h-[80vh] hidden rounded" />
-                <video id="modalVideo" class="max-w-full max-h-[80vh] hidden rounded" controls></video>
+        <div class="relative max-w-5xl w-full flex flex-col items-center">
+            <div id="mediaContainer" class="bg-black rounded overflow-hidden flex justify-center items-center w-full" style="height:80vh">
+                <img id="modalImage" class="hidden rounded" style="width:100%; height:100%; object-fit:contain;" />
+                <video id="modalVideo" class="hidden rounded" style="width:100%; height:100%; object-fit:contain;" controls></video>
             </div>
             <div class="flex gap-4 mt-4">
                 <button id="prevMediaBtn" class="bg-white px-4 py-2 rounded font-bold hover:bg-gray-200">Prev</button>
