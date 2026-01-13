@@ -164,16 +164,22 @@
       </div>
 
       <!-- News Carousel -->
-      <div class="relative overflow-hidden">
-        <div id="newsCarousel" class="flex transition-transform duration-700 ease-in-out"></div>
+      <div class="relative px-12 sm:px-16 w-full group">
+        
         <button id="prevBtn"
-          class="absolute left-2 top-1/2 -translate-y-1/2 bg-green-700 text-white p-2 md:p-3 rounded-full shadow-md hover:bg-green-800 transition z-10">
-          &#10094;
+          class="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center border-2 border-green-700 text-green-700 rounded-full hover:bg-green-700 hover:text-white transition-colors duration-300 z-20 bg-white shadow-sm">
+          <i class="fa-solid fa-chevron-left"></i>
         </button>
+
+        <div class="overflow-hidden rounded-xl">
+          <div id="newsCarousel" class="flex transition-transform duration-700 ease-in-out"></div>
+        </div>
+
         <button id="nextBtn"
-          class="absolute right-2 top-1/2 -translate-y-1/2 bg-green-700 text-white p-2 md:p-3 rounded-full shadow-md hover:bg-green-800 transition z-10">
-          &#10095;
+          class="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center border-2 border-green-700 text-green-700 rounded-full hover:bg-green-700 hover:text-white transition-colors duration-300 z-20 bg-white shadow-sm">
+          <i class="fa-solid fa-chevron-right"></i>
         </button>
+
       </div>
     </div>
   </section>
